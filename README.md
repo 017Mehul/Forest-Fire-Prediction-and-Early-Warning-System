@@ -187,10 +187,9 @@ http://localhost:5173
 
 ## 👨‍💻 Author
 
-Manthan Dixit
-B.Tech CSE (IoT)
-Manipal University Jaipur
-
+Manthan Dixit - B.Tech CSE (IoT) - Manipal University Jaipur
+Mehul Gupta - B.Tech CSE (Core) - Manipal University Jaipur
+Milen Deep Kaur - BBA - Manipal University Jaipur
 ---
 
 ## ⭐ Contribution
