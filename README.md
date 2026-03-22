@@ -2,6 +2,8 @@
 
 An AI-powered system that predicts forest fire risk using environmental parameters like temperature, humidity, wind speed, and vegetation. It provides real-time predictions through a simple and interactive dashboard.
 
+
+DEPLOYED WEB URL LINK--https://forest-fire-prediction-mkowdrj83-017mehul-8076s-projects.vercel.app/
 ---
 
 ## 🚀 Features
