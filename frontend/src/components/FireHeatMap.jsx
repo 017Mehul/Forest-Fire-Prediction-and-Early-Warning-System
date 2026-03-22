@@ -4,8 +4,9 @@ import "leaflet/dist/leaflet.css";
 import "leaflet.heat";
 import { USA_ZONES } from "../data/zones";
 
-const HEATMAP_API = "http://127.0.0.1:8000/heatmap";
-const PREDICT_API = "http://127.0.0.1:8000/predict";
+const BASE_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+const HEATMAP_API = `${BASE_URL}/heatmap`;
+const PREDICT_API = `${BASE_URL}/predict`;
 const ALERT_THRESHOLD_HOTSPOTS = 5;
 const ALERT_THRESHOLD_RISK = 75;
 

@@ -3,7 +3,8 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet.heat";
 
-const HEATMAP_API = "http://127.0.0.1:8000/heatmap";
+const BASE_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+const HEATMAP_API = `${BASE_URL}/heatmap`;
 
 export default function DashboardMiniMap({ metrics = {}, onNavigate }) {
   const containerRef = useRef(null);

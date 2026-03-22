@@ -36,6 +36,8 @@ class AppErrorBoundary extends Component {
   }
 }
 
+const BASE_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+
 function App() {
   const [activePage,   setActivePage]  = useState("dashboard");
   const [liveAlerts,   setLiveAlerts]  = useState([]);
@@ -48,13 +50,13 @@ function App() {
   // ── load zones + heatmap once on mount ──────────────────────────
   useEffect(() => {
     // zones: try backend first, fall back to mock
-    fetch("http://127.0.0.1:8000/zones")
+    fetch(`${BASE_URL}/zones`)
       .then(r => r.ok ? r.json() : Promise.reject())
       .catch(() => MOCK_ZONES)
       .then(data => setZones(data));
 
     // heatmap
-    fetch("http://127.0.0.1:8000/heatmap")
+    fetch(`${BASE_URL}/heatmap`)
       .then(r => r.ok ? r.json() : [])
       .catch(() => [])
       .then(data => setHeatmapData(data))
@@ -89,7 +91,7 @@ function App() {
     let riskLevel = zone.risk > 75 ? "High" : "Medium";
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/predict", {
+      const res = await fetch(`${BASE_URL}/predict`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
