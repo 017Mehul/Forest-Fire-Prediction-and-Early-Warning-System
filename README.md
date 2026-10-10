@@ -13,7 +13,10 @@ An ML-powered wildfire-risk monitoring application combining a calibrated XGBoos
 - Explicitly labeled baseline monitoring-zones API
 - NASA FIRMS VIIRS NOAA-21 near-real-time fire-detection integration (requires a server-side MAP_KEY)
 - Open-Meteo current-weather integration and weather-enriched prediction endpoint
-- Per-process API rate limiting
+- Per-process API rate limiting with bounded in-memory state
+- API security headers, restrictive browser CSP, and disabled public API docs by default
+- Production source maps disabled
+- Python and npm dependency audits in CI plus weekly Dependabot updates
 - Fire-image hotspot detection without fabricated fallback coordinates
 - React dashboard with prediction, map, and alert views
 - Backend regression tests
@@ -180,12 +183,21 @@ For a multi-instance deployment, replace the in-process rate limiter with a shar
 
 ## Security
 
-- Strict CORS allowlist via `ALLOWED_ORIGINS`
+- Strict CORS allowlist via `ALLOWED_ORIGINS` (configure the exact deployed frontend origin on the backend)
+- Browser CSP and security response headers on Vercel deployments
+- Fixed upstream provider URLs for weather and satellite data; no user-supplied URL is fetched
+- No browser `localStorage` authentication-token storage or authentication implementation is present
 - Pydantic range validation
 - Unknown JSON fields rejected
 - Sanitized prediction errors
 - No credentials committed to the repository
 - Generated build/cache artifacts excluded from new commits
+
+## Security scope and remaining configuration
+
+This repository currently has no user accounts, password handling, JWT/session authentication, database, user-owned records, file-upload route, or webhook receiver. Password hashing, MFA, JWT hardening, CSRF tokens, IDOR/object authorization, database row-level security, upload scanning, and webhook signature verification cannot be meaningfully implemented until those features and their trust boundaries exist. Do not add placeholder implementations that imply these controls are active. If those features are added, implement server-side authorization and CSRF protection appropriate to the chosen authentication/session model before exposing them.
+
+Set `ALLOWED_ORIGINS` on the backend to the exact production frontend origin(s). The in-memory rate limiter is per process and is not a substitute for a shared edge/Redis limiter in a multi-instance deployment. CI audits report dependency advisories; dependency versions and lockfiles should be updated based on those results.
 
 ## Limitations
 
