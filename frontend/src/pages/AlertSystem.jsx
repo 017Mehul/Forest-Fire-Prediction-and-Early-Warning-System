@@ -105,9 +105,9 @@ export default function AlertSystem({ onNavigate, liveAlerts = [], onViewOnMap, 
 
   const handleEscalate = (id, location) => {
     escalateAlert?.(id);
-    addLog(`Authorities notified: ${location}`);
-    showToast("🚨 Authorities notified successfully. Emergency response initiated.");
-    console.log("Dispatching emergency alert to authorities...");
+    addLog(`Alert escalated in dashboard: ${location}`);
+    showToast("🚨 Alert marked as escalated in this dashboard. No external notification was sent.");
+    // Escalation changes local UI state only; no external notification is configured.
   };
 
   // ESCALATED → ACTIVE → ACKNOWLEDGED
@@ -143,12 +143,11 @@ export default function AlertSystem({ onNavigate, liveAlerts = [], onViewOnMap, 
             <small>LIVE MONITORING</small>
             <h2>Critical Alerts</h2>
             <p>
-              Real-time hazard detection utilizing multispectral satellite imagery and
-              ground-level sensor fusion. Includes environmental + historical risk factors.
+              Satellite thermal detections and weather context. This prototype does not use ground-level sensor fusion or issue official emergency alerts.
             </p>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 4 }}>
               <span style={{ fontSize: 11, fontWeight: 700, color: "#4e8a6a", background: "rgba(30,100,60,0.1)", border: "1px solid rgba(30,100,60,0.2)", borderRadius: 6, padding: "3px 10px", letterSpacing: "0.06em" }}>
-                🛰 Confidence: 87% — NASA FIRMS + Weather Data
+                🛰 NASA FIRMS detections + weather data (no calibrated confidence score)
               </span>
               <span style={{ fontSize: 11, fontWeight: 700, color: "#7a6030", background: "rgba(120,90,20,0.08)", border: "1px solid rgba(120,90,20,0.18)", borderRadius: 6, padding: "3px 10px", letterSpacing: "0.06em" }}>
                 🤖 Auto-escalation active for score &gt; 90
@@ -250,18 +249,18 @@ export default function AlertSystem({ onNavigate, liveAlerts = [], onViewOnMap, 
                           View on Map →
                         </button>
 
-                        {/* Notify Authorities — only on ACTIVE */}
+                        {/* Mark Escalated — only on ACTIVE */}
                         {!isEscalated && !isAck && alert.id && (
                           <button
                             onClick={() => handleEscalate(alert.id, alert.location)}
                             style={{ ...btnBase, border: "1px solid rgba(255,100,100,0.6)", background: "rgba(180,0,0,0.4)", color: "#fff" }}
                           >
-                            🚨 Notify Authorities
+                            🚨 Mark Escalated
                           </button>
                         )}
                         {isEscalated && (
                           <button disabled style={{ ...btnBase, border: "1px solid rgba(255,100,100,0.3)", background: "rgba(100,0,0,0.3)", color: "rgba(255,180,180,0.8)", cursor: "not-allowed" }}>
-                            Authorities Notified ✓
+                            Escalated in Dashboard
                           </button>
                         )}
 
