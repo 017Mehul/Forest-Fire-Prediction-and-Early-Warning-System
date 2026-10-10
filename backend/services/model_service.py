@@ -34,7 +34,7 @@ def _to_risk_level(score: float) -> str:
     if score < 75: return "Medium"
     return "High"
 
-def predict_fire_risk(temperature: float, humidity: float, wind: float, vegetation: float):
+def predict_fire_risk(temperature: float, humidity: float, wind: float, vegetation: float, weather: dict | None = None):
     for name, value in {"temperature": temperature, "humidity": humidity, "wind": wind, "vegetation": vegetation}.items():
         if not np.isfinite(value):
             raise ValueError(f"{name} must be finite")
@@ -44,9 +44,18 @@ def predict_fire_risk(temperature: float, humidity: float, wind: float, vegetati
     if feature_names != DEFAULT_FEATURE_NAMES:
         raise ValueError("Loaded model feature metadata does not match the deployed inference contract")
 
+    # Live weather supplies six model features when available. Soil variables remain
+    # explicit proxies until an authoritative soil-data feed is connected.
+    weather = weather or {}
+    precipitation = float(weather.get("precipitation", 0.0))
+    surface_pressure = float(weather.get("surface_pressure", 1013.25))
+    cloud_cover = float(weather.get("cloud_cover", 10.0))
     soil_temp = temperature - 4.0
     soil_moisture = (humidity / 100.0) * 0.3
-    features = np.array([[temperature, humidity, 0.0, 1013.25, 10.0, wind, soil_temp, soil_temp - 1.0, soil_moisture, soil_moisture]], dtype=float)
+    features = np.array([[
+        temperature, humidity, precipitation, surface_pressure, cloud_cover, wind,
+        soil_temp, soil_temp - 1.0, soil_moisture, soil_moisture,
+    ]], dtype=float)
 
     if hasattr(model, "predict_proba"):
         ml_score = float(model.predict_proba(features)[0][1]) * 100.0
@@ -66,6 +75,8 @@ def predict_fire_risk(temperature: float, humidity: float, wind: float, vegetati
         "risk_level": _to_risk_level(final_score),
         "model": "calibrated_xgboost_plus_environmental_rules",
         "inputs": {"temperature": temperature, "humidity": humidity, "wind": wind, "vegetation": vegetation},
-        "data_quality": "partial_environmental_inputs",
-        "disclaimer": "Risk score is an engineering estimate and is not an official emergency warning probability.",
+        "data_quality": "live_weather_partial_inputs" if weather else "partial_environmental_inputs",
+        "weather_source": "Open-Meteo" if weather else None,
+        "disclaimer": "Risk score is an engineering estimate and is not an official emergency warning probability. Soil features remain estimated proxies.",
+
     }
