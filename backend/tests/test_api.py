@@ -145,3 +145,24 @@ def test_fire_endpoint_requires_server_side_map_key(monkeypatch):
 def test_fire_endpoint_rejects_invalid_bounding_box():
     response = client.get("/fires?west=10&east=-10&south=0&north=20")
     assert response.status_code == 422
+
+
+def test_fire_endpoint_parses_provider_detections(monkeypatch):
+    import routes.fires as fires
+
+    monkeypatch.setenv("FIRMS_MAP_KEY", "test-key")
+
+    class FakeResponse:
+        text = "latitude,longitude,confidence,frp,acq_date,acq_time,satellite\n37.5,-119.5,h,12.4,2026-10-10,1015,N21\n"
+
+        def raise_for_status(self):
+            return None
+
+    monkeypatch.setattr(fires.httpx, "get", lambda *args, **kwargs: FakeResponse())
+    response = client.get("/fires?west=-125&south=24&east=-66&north=50")
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["live"] is True
+    assert payload["count"] == 1
+    assert payload["detections"][0]["latitude"] == 37.5
+    assert payload["detections"][0]["confidence"] == "h"
