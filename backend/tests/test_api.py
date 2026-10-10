@@ -119,3 +119,17 @@ def test_missing_image_never_generates_synthetic_hotspots(tmp_path):
     from services.opencv_service import detect_fire
 
     assert detect_fire(tmp_path / "not-present.jpg") is None
+
+
+def test_fire_endpoint_requires_server_side_map_key(monkeypatch):
+    import routes.fires as fires
+
+    monkeypatch.delenv("FIRMS_MAP_KEY", raising=False)
+    response = client.get("/fires")
+    assert response.status_code == 503
+    assert "FIRMS_MAP_KEY" in response.json()["detail"]
+
+
+def test_fire_endpoint_rejects_invalid_bounding_box():
+    response = client.get("/fires?west=10&east=-10&south=0&north=20")
+    assert response.status_code == 422
