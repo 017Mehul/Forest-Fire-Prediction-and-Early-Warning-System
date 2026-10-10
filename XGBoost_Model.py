@@ -5,6 +5,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, roc_auc_score, confusion_matrix, precision_score, recall_score, f1_score
 from sklearn.calibration import CalibratedClassifierCV
 import joblib
+import json
+from pathlib import Path
 
 # Load the dataset
 data = pd.read_csv('final-datasets/Trihourly_Weather_Dataset.csv')
@@ -77,6 +79,9 @@ f1 = f1_score(y_test, predicted_classes)
 results_df.to_csv('wildfire_predictions.csv', index=False)
 joblib.dump(calibrated_clf, 'wildfire_model.pkl')
 joblib.dump(features_columns, 'model_features.pkl')
+Path('backend/model').mkdir(parents=True, exist_ok=True)
+joblib.dump(calibrated_clf, 'backend/model/fire_model.pkl')
+Path('backend/model/features.json').write_text(json.dumps(features_columns, indent=2) + '\\n', encoding='utf-8')
 print(f"Accuracy: {accuracy}")
 print(f"ROC AUC Score: {roc_auc}")
 print(f"Precision: {precision}")
