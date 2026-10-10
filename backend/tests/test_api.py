@@ -113,3 +113,9 @@ def test_current_prediction_uses_weather_provider(monkeypatch):
     assert payload["data_quality"] == "live_weather_partial_inputs"
     assert payload["weather_timestamp"] == weather_payload["time"]
     assert payload["inputs"]["weather"]["surface_pressure"] == 990.0
+
+
+def test_missing_image_never_generates_synthetic_hotspots(tmp_path):
+    from services.opencv_service import detect_fire
+
+    assert detect_fire(tmp_path / "not-present.jpg") is None
