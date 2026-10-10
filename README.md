@@ -10,7 +10,10 @@ An ML-powered wildfire-risk monitoring application combining a calibrated XGBoos
 - Explicit model feature contract
 - FastAPI prediction API with strict input validation
 - Health endpoint for deployment monitoring
-- Monitoring-zones API
+- Explicitly labeled baseline monitoring-zones API
+- NASA FIRMS VIIRS NOAA-21 near-real-time fire-detection integration (requires a server-side MAP_KEY)
+- Open-Meteo current-weather integration and weather-enriched prediction endpoint
+- Per-process API rate limiting
 - Fire-image hotspot detection without fabricated fallback coordinates
 - React dashboard with prediction, map, and alert views
 - Backend regression tests
@@ -24,9 +27,9 @@ React/Vite dashboard
         |
         v
 FastAPI
-  |     |      |
-  v     v      v
-Predict Zones Heatmap
+  |     |      |       |       |
+  v     v      v       v       v
+Predict Zones Heatmap Weather NASA FIRMS
   |
   v
 Calibrated XGBoost + environmental risk rules
@@ -91,6 +94,12 @@ Returns the currently bundled baseline monitoring zones. The response explicitly
 `GET /weather?latitude=37.5&longitude=-119.5`
 
 Fetches current weather from Open-Meteo for validated WGS84 coordinates. The response includes the provider timestamp, units, source, and `live: true`. Weather data is not an official wildfire alert. Attribute the source as [Weather data by Open-Meteo.com](https://open-meteo.com/); the data is licensed under CC BY 4.0. This endpoint is currently independent of model inference: the prediction model still uses partial-input proxies and must not be represented as fully weather-enriched.
+
+### NASA FIRMS satellite fire detections
+
+`GET /fires?west=-125&south=24&east=-66&north=50`
+
+Fetches recent VIIRS NOAA-21 detections from the official NASA FIRMS area API. Set `FIRMS_MAP_KEY` as a server-side environment variable; request a key through [NASA FIRMS](https://firms.modaps.eosdis.nasa.gov/api/map_key/). The key is never sent to the frontend. If no key is configured, the endpoint returns HTTP 503 rather than simulated detections. Detection pixels can include false positives and are not confirmed incidents or official warnings. The current default bounding box is the contiguous United States; pass a different validated bounding box for another region. NASA FIRMS supports bounded area queries and documents the available NRT sensors. citeturn0search1turn0search2
 
 ### Fire heatmap
 
@@ -165,9 +174,9 @@ The deployment model and feature metadata are deliberately kept aligned with the
 
 ## Data and real-time integration
 
-The repository contains historical weather and wildfire datasets used for model development. The bundled `/zones` endpoint is intentionally marked as baseline data.
+The repository contains historical weather and wildfire datasets used for model development. `/weather` and `/predict/current` use live Open-Meteo conditions; `/fires` uses NASA FIRMS when `FIRMS_MAP_KEY` is configured. `/zones` remains baseline data. The dashboard no longer generates alerts from static zone scores; it displays configured satellite detections as observations, not confirmed incidents.
 
-For production deployment, connect an authoritative weather source and a documented satellite/fire-detection source, then persist timestamps, source identifiers, geolocation, and confidence for every observation. Do not replace unavailable live data with synthetic coordinates or random risk scores.
+For a multi-instance deployment, replace the in-process rate limiter with a shared gateway/Redis limiter. Persisted alert history and outbound notification delivery are not implemented. Do not replace unavailable live data with synthetic coordinates or random risk scores.
 
 ## Security
 
@@ -180,9 +189,10 @@ For production deployment, connect an authoritative weather source and a documen
 
 ## Limitations
 
-- The current four-input UI does not provide all ten model features directly.
+- The standard four-input prediction endpoint does not provide all ten model features directly; the live-weather endpoint supplies six weather features, while soil inputs remain proxies.
 - The image detector is a computer-vision demonstration and is not a substitute for georeferenced MODIS/VIIRS/FIRMS or official fire-detection products.
 - Baseline zones are not live observations.\n- Live weather is exposed by a separate endpoint but is not yet used directly by model inference.
+- Alerts are in-memory UI state, not persisted history or outbound notifications.
 - No alert should be interpreted as an official emergency notification.
 
 ## Author
