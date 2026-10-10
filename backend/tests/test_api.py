@@ -76,3 +76,40 @@ def test_weather_returns_live_provider_data(monkeypatch):
 def test_weather_rejects_invalid_coordinates():
     response = client.get("/weather?latitude=91&longitude=0")
     assert response.status_code == 422
+
+
+def test_current_prediction_uses_weather_provider(monkeypatch):
+    import routes.predict as predict_route
+
+    weather_payload = {
+        "source": "Open-Meteo",
+        "live": True,
+        "time": "2026-10-10T10:00",
+        "coordinates": {"latitude": 37.5, "longitude": -119.5},
+        "current": {
+            "temperature_2m": 31.0,
+            "relative_humidity_2m": 22,
+            "precipitation": 0.0,
+            "surface_pressure": 990.0,
+            "cloud_cover": 8,
+            "wind_speed_10m": 18.0,
+        },
+    }
+    monkeypatch.setattr(predict_route, "current_weather", lambda *_args, **_kwargs: weather_payload)
+    monkeypatch.setattr(
+        predict_route,
+        "predict_fire_risk",
+        lambda **kwargs: {
+            "risk_score": 50.0,
+            "risk_level": "Medium",
+            "data_quality": "live_weather_partial_inputs",
+            "inputs": kwargs,
+        },
+    )
+
+    response = client.get("/predict/current?latitude=37.5&longitude=-119.5&vegetation=60")
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["data_quality"] == "live_weather_partial_inputs"
+    assert payload["weather_timestamp"] == weather_payload["time"]
+    assert payload["inputs"]["weather"]["surface_pressure"] == 990.0
