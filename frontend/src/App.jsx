@@ -45,17 +45,24 @@ function App() {
 
   // ── load zones + heatmap once on mount ──────────────────────────
   useEffect(() => {
-    // zones: try backend first, fall back to mock
+    // Zones are explicitly baseline data when no live zone provider is configured.
     fetch(`${BASE_URL}/zones`)
       .then(r => r.ok ? r.json() : Promise.reject(new Error("zones unavailable")))
       .then(data => setZones(Array.isArray(data) ? data : (data.zones || [])))
       .catch(() => setZones([]));
 
-    // heatmap
-    fetch(`${BASE_URL}/heatmap`)
-      .then(r => r.ok ? r.json() : [])
-      .catch(() => [])
-      .then(data => setHeatmapData(data))
+    // Real NASA FIRMS detections are only available when FIRMS_MAP_KEY is configured server-side.
+    fetch(`${BASE_URL}/fires`)
+      .then(r => r.ok ? r.json() : Promise.reject(new Error("satellite fire data unavailable")))
+      .then(data => {
+        const detections = Array.isArray(data.detections) ? data.detections : [];
+        setHeatmapData(detections.map(item => [
+          item.latitude,
+          item.longitude,
+          Math.max(0.1, Math.min(1, Number(item.frp || 0) / 100)),
+        ]));
+      })
+      .catch(() => setHeatmapData([]))
       .finally(() => setDataLoading(false));
   }, []);
 
@@ -142,7 +149,7 @@ function App() {
         zoneAlerts.push({
           id:        "heatmap-hotspots",
           type:      "HIGH",
-          message:   "Multiple fire hotspots detected via satellite",
+          message:   "Multiple satellite fire detections reported by NASA FIRMS",
           location:  "Forest Region",
           riskScore: 0,
           riskLevel: "High",
