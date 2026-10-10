@@ -51,9 +51,9 @@ function App() {
   useEffect(() => {
     // zones: try backend first, fall back to mock
     fetch(`${BASE_URL}/zones`)
-      .then(r => r.ok ? r.json() : Promise.reject())
-      .catch(() => MOCK_ZONES)
-      .then(data => setZones(data));
+      .then(r => r.ok ? r.json() : Promise.reject(new Error("zones unavailable")))
+      .then(data => setZones(Array.isArray(data) ? data : (data.zones || [])))
+      .catch(() => setZones([]));
 
     // heatmap
     fetch(`${BASE_URL}/heatmap`)
@@ -149,7 +149,7 @@ function App() {
           type:      "HIGH",
           message:   "Multiple fire hotspots detected via satellite",
           location:  "Forest Region",
-          riskScore: Math.floor(60 + Math.random() * 30),
+          riskScore: 0,
           riskLevel: "High",
           score:     75,
           time:      new Date().toLocaleTimeString(),
