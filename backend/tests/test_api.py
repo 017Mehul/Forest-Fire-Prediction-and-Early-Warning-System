@@ -166,3 +166,16 @@ def test_fire_endpoint_parses_provider_detections(monkeypatch):
     assert payload["count"] == 1
     assert payload["detections"][0]["latitude"] == 37.5
     assert payload["detections"][0]["confidence"] == "h"
+
+
+def test_api_responses_include_security_headers():
+    response = client.get("/health")
+    assert response.headers["x-content-type-options"] == "nosniff"
+    assert response.headers["x-frame-options"] == "DENY"
+    assert response.headers["referrer-policy"] == "strict-origin-when-cross-origin"
+    assert response.headers["content-security-policy"] == "default-src 'none'; frame-ancestors 'none'; base-uri 'none'"
+    assert response.headers["cache-control"] == "no-store"
+
+
+def test_api_docs_are_disabled_by_default():
+    assert client.get("/docs").status_code == 404
