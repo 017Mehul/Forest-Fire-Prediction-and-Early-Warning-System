@@ -134,29 +134,21 @@ function App() {
     if (!zones.length && !heatmapData.length) return;
 
     const buildAlerts = async () => {
-      const alertPromises = [];
-
-      zones.forEach(zone => {
-        const score = zone.risk ?? zone.risk_score ?? 0;
-        if (score > 75 || score > 40) {
-          alertPromises.push(createAlert(zone));
-        }
-      });
-
-      const zoneAlerts = await Promise.all(alertPromises);
-
-      if (heatmapData.length > 5) {
+      const zoneAlerts = [];
+      if (heatmapData.length > 0) {
         zoneAlerts.push({
-          id:        "heatmap-hotspots",
-          type:      "HIGH",
-          message:   "Multiple satellite fire detections reported by NASA FIRMS",
-          location:  "Forest Region",
+          id: "firms-detections",
+          type: "MEDIUM",
+          message: `${heatmapData.length} satellite thermal detection(s) reported by NASA FIRMS`,
+          location: "Configured FIRMS bounding box",
           riskScore: 0,
-          riskLevel: "High",
-          score:     75,
-          time:      new Date().toLocaleTimeString(),
-          status:    "ACTIVE",
+          riskLevel: "Unclassified",
+          score: 0,
+          time: new Date().toLocaleTimeString(),
+          status: "ACTIVE",
           zoomTarget: null,
+          source: "NASA FIRMS",
+          disclaimer: "Satellite detections are not confirmation of a wildfire or an official emergency alert.",
         });
       }
 
