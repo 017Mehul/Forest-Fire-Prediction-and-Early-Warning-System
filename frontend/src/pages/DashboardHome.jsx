@@ -151,8 +151,8 @@ export default function DashboardHome({ onNavigate, metrics = {}, liveAlerts = [
     {
       title: "Avg Temperature",
       value: loading ? "…" : `${liveTemp}°C`,
-      tag: isSimulation ? "SIMULATED" : "REAL-TIME",
-      hint: isSimulation ? "Gale-force winds active" : "Aggregated across all monitored zones",
+      tag: isSimulation ? "SIMULATED" : "BASELINE",
+      hint: isSimulation ? "Gale-force winds active" : "Aggregated baseline zone values",
       iconType: "thermo", badgeVariant: "realtime", sparkline: isSimulation ? "simUp" : "up",
       segments: null, footerEmoji: "💨",
       footerHintClass: isSimulation ? "card-footer-hint--danger" : "",
@@ -161,8 +161,8 @@ export default function DashboardHome({ onNavigate, metrics = {}, liveAlerts = [
     {
       title: "Avg Vegetation",
       value: loading ? "…" : `${liveVeg}%`,
-      tag: isSimulation ? "DENSITY" : "SATELLITE",
-      hint: isSimulation ? "Fuel load simulation set to max" : "Vegetation density from satellite feed",
+      tag: isSimulation ? "DENSITY" : "BASELINE",
+      hint: isSimulation ? "Fuel load simulation set to max" : "Bundled vegetation baseline",
       iconType: "tree", badgeVariant: "satellite", sparkline: null,
       segments: isSimulation ? 4 : Math.min(5, Math.round(parseInt(liveVeg) / 20)),
       footerEmoji: "🌿", footerHintClass: "", mapLink: false, alertLine: null, highlight: false,
@@ -222,10 +222,10 @@ export default function DashboardHome({ onNavigate, metrics = {}, liveAlerts = [
             <p>Real-time surveillance and predictive analytics for high-stakes ecological management.</p>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 6 }}>
               <span style={{ fontSize: 11, fontWeight: 700, color: "#4e8a6a", background: "rgba(30,100,60,0.1)", border: "1px solid rgba(30,100,60,0.2)", borderRadius: 6, padding: "3px 10px", letterSpacing: "0.06em" }}>
-                🛰 Confidence: 87% — NASA FIRMS + Weather Data
+                🛰 Model input confidence depends on configured data sources
               </span>
               <span style={{ fontSize: 11, fontWeight: 700, color: "#7a6030", background: "rgba(120,90,20,0.08)", border: "1px solid rgba(120,90,20,0.18)", borderRadius: 6, padding: "3px 10px", letterSpacing: "0.06em" }}>
-                📡 Powered by satellite + weather intelligence
+                📡 Environmental risk analytics
               </span>
             </div>
           </div>
@@ -359,7 +359,7 @@ export default function DashboardHome({ onNavigate, metrics = {}, liveAlerts = [
             <div className="map-overlay">
               <h4>{riskLabel}</h4>
               <div className="progress"><span style={{ width: riskPct }} /></div>
-              <p>Aggregated from satellite feeds and historical burn pattern trends.</p>
+              <p>Aggregated from the configured monitoring dataset.</p>
             </div>
           </div>
 
