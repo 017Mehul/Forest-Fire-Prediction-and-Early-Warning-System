@@ -8,23 +8,21 @@ import { Component } from "react";
 class AppErrorBoundary extends Component {
   constructor(props) {
     super(props);
-    this.state = { hasError: false, message: "" };
+    this.state = { hasError: false };
   }
   static getDerivedStateFromError(error) {
-    return { hasError: true, message: error?.message || "Unexpected UI error" };
+    return { hasError: true };
   }
   componentDidCatch(error, errorInfo) {
-    console.error("UI crash captured:", error, errorInfo);
+    // Avoid logging exception objects/stacks that may contain user or request data.
   }
   render() {
     if (this.state.hasError) {
       return (
         <div style={{ padding: 24, fontFamily: "Segoe UI, Arial, sans-serif" }}>
           <h2 style={{ marginTop: 0 }}>UI error detected</h2>
-          <p>Refresh once. If issue persists, share this message:</p>
-          <pre style={{ background: "#f6f6f6", padding: 12, borderRadius: 8 }}>
-            {this.state.message}
-          </pre>
+          <p>Refresh the page. If the issue persists, contact the site maintainer.</p>
+          
         </div>
       );
     }
@@ -111,7 +109,7 @@ function App() {
         }
       }
     } catch (err) {
-      console.warn("[createAlert] /predict failed, using fallback:", err);
+      console.warn("[createAlert] Prediction service unavailable.");
     }
 
     const type = riskScore >= 75 ? "HIGH" : riskScore >= 40 ? "MEDIUM" : "LOW";
@@ -152,7 +150,7 @@ function App() {
         });
       }
 
-      console.log("[App] alerts generated:", zoneAlerts);
+      // Do not log user-facing alert payloads to the browser console.
       setLiveAlerts(zoneAlerts);
     };
 
@@ -164,7 +162,7 @@ function App() {
     setLiveAlerts(prev =>
       prev.map(a => {
         if (a.status === "ACTIVE" && (a.score ?? 0) > 90) {
-          console.log(`[AUTO-ESCALATE] ${a.location} — score ${a.score} exceeds critical threshold`);
+          // State transition is reflected in the UI; avoid logging alert details.
           return { ...a, status: "ESCALATED", autoEscalated: true };
         }
         return a;
@@ -202,7 +200,7 @@ function App() {
 
   // ── escalate an alert ────────────────────────────────────────────
   const escalateAlert = useCallback((id) => {
-    console.log("Dispatching emergency alert to authorities...");
+    // This UI transition does not send an external notification.
     setLiveAlerts(prev =>
       prev.map(a => a.id === id ? { ...a, status: "ESCALATED" } : a)
     );
