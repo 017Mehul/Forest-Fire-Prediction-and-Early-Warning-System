@@ -16,7 +16,7 @@ frontend/dist/
 # Local environment and secrets
 .env
 .env.*
-!.env.example
+!**/.env.example
 
 # Logs
 *.log
