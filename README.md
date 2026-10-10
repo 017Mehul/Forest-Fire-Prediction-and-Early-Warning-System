@@ -80,6 +80,12 @@ The API validates physical ranges and rejects unknown fields.
 
 Returns the currently bundled baseline monitoring zones. The response explicitly contains `live: false`; these values are not presented as real-time observations.
 
+### Current weather
+
+`GET /weather?latitude=37.5&longitude=-119.5`
+
+Fetches current weather from Open-Meteo for validated WGS84 coordinates. The response includes the provider timestamp, units, source, and `live: true`. Weather data is not an official wildfire alert. Attribute the source as [Weather data by Open-Meteo.com](https://open-meteo.com/); the data is licensed under CC BY 4.0. This endpoint is currently independent of model inference: the prediction model still uses partial-input proxies and must not be represented as fully weather-enriched.
+
 ### Fire heatmap
 
 `GET /heatmap`
@@ -170,7 +176,7 @@ For production deployment, connect an authoritative weather source and a documen
 
 - The current four-input UI does not provide all ten model features directly.
 - The image detector is a computer-vision demonstration and is not a substitute for georeferenced MODIS/VIIRS/FIRMS or official fire-detection products.
-- Baseline zones are not live observations.
+- Baseline zones are not live observations.\n- Live weather is exposed by a separate endpoint but is not yet used directly by model inference.
 - No alert should be interpreted as an official emergency notification.
 
 ## Author
