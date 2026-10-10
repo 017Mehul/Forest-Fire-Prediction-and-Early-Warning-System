@@ -1,0 +1,12 @@
+[
+  "temperature_2m",
+  "relative_humidity_2m",
+  "precipitation",
+  "surface_pressure",
+  "cloud_cover",
+  "wind_speed_10m",
+  "soil_temperature_0_to_7cm",
+  "soil_temperature_7_to_28cm",
+  "soil_moisture_0_to_7cm",
+  "soil_moisture_7_to_28cm"
+]
