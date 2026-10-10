@@ -74,6 +74,12 @@ Example request:
 
 The API validates physical ranges and rejects unknown fields.
 
+### Live weather-based prediction
+
+`GET /predict/current?latitude=37.5&longitude=-119.5&vegetation=60`
+
+Fetches current Open-Meteo conditions and uses temperature, humidity, precipitation, surface pressure, cloud cover, and wind speed as model inputs. Soil temperature and soil moisture remain explicit proxies, so the response labels the result `live_weather_partial_inputs`. This is a model estimate, not an official warning.
+
 ### Monitoring zones
 
 `GET /zones`
