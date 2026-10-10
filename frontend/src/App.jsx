@@ -4,10 +4,6 @@ import PredictionPanel from "./pages/PredictionPanel";
 import AlertSystem from "./pages/AlertSystem";
 import { useState, useCallback, useEffect } from "react";
 import { Component } from "react";
-import { USA_ZONES } from "./data/zones";
-
-// Shared fallback — used when backend /zones is unavailable
-const MOCK_ZONES = USA_ZONES;
 
 class AppErrorBoundary extends Component {
   constructor(props) {
