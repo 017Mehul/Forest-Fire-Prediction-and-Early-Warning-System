@@ -93,13 +93,13 @@ Returns the currently bundled baseline monitoring zones. The response explicitly
 
 `GET /weather?latitude=37.5&longitude=-119.5`
 
-Fetches current weather from Open-Meteo for validated WGS84 coordinates. The response includes the provider timestamp, units, source, and `live: true`. Weather data is not an official wildfire alert. Attribute the source as [Weather data by Open-Meteo.com](https://open-meteo.com/); the data is licensed under CC BY 4.0. This endpoint is currently independent of model inference: the prediction model still uses partial-input proxies and must not be represented as fully weather-enriched.
+Fetches current weather from Open-Meteo for validated WGS84 coordinates. The response includes the provider timestamp, units, source, and `live: true`. Weather data is not an official wildfire alert. Attribute the source as [Weather data by Open-Meteo.com](https://open-meteo.com/); the data is licensed under CC BY 4.0. The separate `/predict/current` endpoint uses this live weather data for six model features; soil inputs remain proxies.
 
 ### NASA FIRMS satellite fire detections
 
 `GET /fires?west=-125&south=24&east=-66&north=50`
 
-Fetches recent VIIRS NOAA-21 detections from the official NASA FIRMS area API. Set `FIRMS_MAP_KEY` as a server-side environment variable; request a key through [NASA FIRMS](https://firms.modaps.eosdis.nasa.gov/api/map_key/). The key is never sent to the frontend. If no key is configured, the endpoint returns HTTP 503 rather than simulated detections. Detection pixels can include false positives and are not confirmed incidents or official warnings. The current default bounding box is the contiguous United States; pass a different validated bounding box for another region. NASA FIRMS supports bounded area queries and documents the available NRT sensors. citeturn0search1turn0search2
+Fetches recent VIIRS NOAA-21 detections from the official NASA FIRMS area API. Set `FIRMS_MAP_KEY` as a server-side environment variable; request a key through [NASA FIRMS](https://firms.modaps.eosdis.nasa.gov/api/map_key/). The key is never sent to the frontend. If no key is configured, the endpoint returns HTTP 503 rather than simulated detections. Detection pixels can include false positives and are not confirmed incidents or official warnings. The current default bounding box is the contiguous United States; pass a different validated bounding box for another region. NASA FIRMS documents the bounded area API and supported near-real-time sensors in its [area API documentation](https://firms.modaps.eosdis.nasa.gov/api/area/) and [API usage tutorial](https://firms.modaps.eosdis.nasa.gov/content/academy/data_api/firms_api_use.html).
 
 ### Fire heatmap
 
