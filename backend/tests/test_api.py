@@ -35,6 +35,6 @@ def test_zones_contract():
 
 def test_heatmap_does_not_fabricate_data_when_source_missing(monkeypatch):
     import routes.heatmap as heatmap
-    monkeypatch.setattr(heatmap, "detect_fire", lambda: None)
+    monkeypatch.setattr(heatmap, "detect_fire", lambda *_args, **_kwargs: None)
     response = client.get("/heatmap")
     assert response.status_code == 503
