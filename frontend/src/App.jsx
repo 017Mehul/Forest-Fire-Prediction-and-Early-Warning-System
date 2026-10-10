@@ -86,8 +86,7 @@ function App() {
 
   // ── fetch real risk score from /predict for a zone ─────────────
   const createAlert = useCallback(async (zone) => {
-    const fallbackScore = Math.floor(60 + Math.random() * 30);
-    let riskScore = fallbackScore;
+    let riskScore = Number(zone.risk ?? zone.risk_score ?? 0);
     let riskLevel = zone.risk > 75 ? "High" : "Medium";
 
     try {
