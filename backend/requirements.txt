@@ -3,4 +3,7 @@ uvicorn
 joblib
 numpy
 scikit-learn
-opencv-python
+opencv-python-headless
+xgboost
+pytest
+httpx
