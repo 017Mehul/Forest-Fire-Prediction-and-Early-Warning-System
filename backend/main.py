@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from routes.predict import router as predict_router
 from routes.heatmap import router as heatmap_router
 from routes.zones import router as zones_router
+from routes.weather import router as weather_router
 
 app = FastAPI(title="Forest Fire Prediction and Early Warning System", version="2.0.0")
 
@@ -15,6 +16,7 @@ app.add_middleware(CORSMiddleware, allow_origins=allowed_origins, allow_credenti
 app.include_router(predict_router)
 app.include_router(heatmap_router)
 app.include_router(zones_router)
+app.include_router(weather_router)
 
 @app.get("/")
 def root():
