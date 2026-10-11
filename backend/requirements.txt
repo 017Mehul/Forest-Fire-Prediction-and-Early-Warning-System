@@ -7,3 +7,4 @@ opencv-python-headless
 xgboost
 pytest
 httpx
+redis>=5,<7

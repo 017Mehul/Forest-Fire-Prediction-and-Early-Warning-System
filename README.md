@@ -13,7 +13,7 @@ An ML-powered wildfire-risk monitoring application combining a calibrated XGBoos
 - Explicitly labeled baseline monitoring-zones API
 - NASA FIRMS VIIRS NOAA-21 near-real-time fire-detection integration (requires a server-side MAP_KEY)
 - Open-Meteo current-weather integration and weather-enriched prediction endpoint
-- Per-process API rate limiting with bounded in-memory state
+- Shared Redis-backed API rate limiting for multi-instance deployments, with bounded in-memory fallback for local/single-instance use
 - API security headers, restrictive browser CSP, and disabled public API docs by default
 - Production source maps disabled
 - Python and npm dependency audits in CI plus weekly Dependabot updates
@@ -179,11 +179,11 @@ The deployment model and feature metadata are deliberately kept aligned with the
 
 The repository contains historical weather and wildfire datasets used for model development. `/weather` and `/predict/current` use live Open-Meteo conditions; `/fires` uses NASA FIRMS when `FIRMS_MAP_KEY` is configured. `/zones` remains baseline data. The dashboard no longer generates alerts from static zone scores; it displays configured satellite detections as observations, not confirmed incidents.
 
-For a multi-instance deployment, replace the in-process rate limiter with a shared gateway/Redis limiter. Persisted alert history and outbound notification delivery are not implemented. Do not replace unavailable live data with synthetic coordinates or random risk scores.
+For multi-instance production deployments, set `REDIS_URL` to a private Redis instance. The application uses an atomic Redis counter with a 60-second window and fails closed with HTTP 503 if the configured shared limiter becomes unavailable. If `REDIS_URL` is not set, a bounded per-process limiter is used for local/single-instance deployments. Persisted alert history and outbound notification delivery are not implemented. Do not replace unavailable live data with synthetic coordinates or random risk scores.
 
 ## Security
 
-- Strict CORS allowlist via `ALLOWED_ORIGINS` (configure the exact deployed frontend origin on the backend)
+- Strict CORS allowlist via `ALLOWED_ORIGINS`; the current production Vercel origin `https://forest-fire-prediction-psi.vercel.app` is the safe default, while local development should explicitly set localhost origins
 - Browser CSP and security response headers on Vercel deployments
 - Fixed upstream provider URLs for weather and satellite data; no user-supplied URL is fetched
 - No browser `localStorage` authentication-token storage or authentication implementation is present
@@ -197,7 +197,7 @@ For a multi-instance deployment, replace the in-process rate limiter with a shar
 
 This repository currently has no user accounts, password handling, JWT/session authentication, database, user-owned records, file-upload route, or webhook receiver. Password hashing, MFA, JWT hardening, CSRF tokens, IDOR/object authorization, database row-level security, upload scanning, and webhook signature verification cannot be meaningfully implemented until those features and their trust boundaries exist. Do not add placeholder implementations that imply these controls are active. If those features are added, implement server-side authorization and CSRF protection appropriate to the chosen authentication/session model before exposing them.
 
-Set `ALLOWED_ORIGINS` on the backend to the exact production frontend origin(s). The in-memory rate limiter is per process and is not a substitute for a shared edge/Redis limiter in a multi-instance deployment. CI audits report dependency advisories; dependency versions and lockfiles should be updated based on those results.
+For the current production frontend, the backend defaults CORS to `https://forest-fire-prediction-psi.vercel.app`. If the frontend domain changes, set `ALLOWED_ORIGINS` on Render to the exact origin(s), comma-separated, with no wildcard. For multi-instance production, set `REDIS_URL` on Render to a private Redis service. CI audits report dependency advisories; dependency versions and lockfiles should be updated based on those results.
 
 ## Limitations
 
