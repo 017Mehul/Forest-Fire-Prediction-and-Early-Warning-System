@@ -1,0 +1,49 @@
+name: Remediate frontend dependencies
+
+on:
+  push:
+    branches:
+      - security/remediate-frontend-deps
+    paths:
+      - "frontend/package.json"
+      - ".github/workflows/remediate-frontend-deps.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  remediate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: security/remediate-frontend-deps
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          package-manager-cache: false
+      - name: Regenerate lockfile and apply compatible security fixes
+        working-directory: frontend
+        run: |
+          npm install --package-lock-only --ignore-scripts
+          npm audit fix --package-lock-only
+      - name: Install exact locked dependencies
+        working-directory: frontend
+        run: npm ci
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
+      - name: Require a clean dependency audit
+        working-directory: frontend
+        run: npm audit
+      - name: Commit validated lockfile
+        run: |
+          if git diff --quiet -- frontend/package-lock.json; then
+            echo "Lockfile already current; no commit required."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add frontend/package-lock.json
+          git commit -m "fix(security): regenerate frontend dependency lockfile"
+          git push origin security/remediate-frontend-deps
