@@ -1,73 +1,129 @@
-# Forest Fire Prediction & Early Warning System
+# 🔥 Forest Fire Prediction & Early Warning System
 
-An ML-powered wildfire-risk monitoring application combining a calibrated XGBoost classifier, environmental risk rules, FastAPI, and a React/Vite dashboard.
+An end-to-end wildfire-risk monitoring platform that combines **machine learning, live environmental data, satellite fire detections, and an interactive web dashboard** to estimate wildfire risk and surface potential fire activity.
 
-> **Important:** This project is an engineering/academic early-warning prototype. Its risk score is **not** an official emergency warning probability and should not be used as the sole basis for evacuation or emergency decisions.
+> **Important:** This is an engineering/academic early-warning prototype. Its predictions and risk scores are **not official emergency warnings** and must not be used as the sole basis for evacuation or emergency decisions.
 
-## What is implemented
+[![CI](https://github.com/017Mehul/Forest-Fire-Prediction-and-Early-Warning-System/actions/workflows/ci.yml/badge.svg)](https://github.com/017Mehul/Forest-Fire-Prediction-and-Early-Warning-System/actions)
+[![Frontend](https://img.shields.io/badge/frontend-React%20%2B%20Vite-61DAFB?logo=react&logoColor=white)](https://react.dev/)
+[![Backend](https://img.shields.io/badge/backend-FastAPI-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![ML](https://img.shields.io/badge/model-XGBoost-EC4A3F)](https://xgboost.readthedocs.io/)
 
-- Calibrated XGBoost wildfire-occurrence model
+**Live demo:** https://forest-fire-prediction-psi.vercel.app
+
+---
+
+## Overview
+
+Wildfire monitoring requires more than a single classification model. This project combines:
+
+- **Calibrated XGBoost** for wildfire-occurrence prediction
+- **Environmental risk rules** for interpretable risk signals
+- **Open-Meteo** for live weather conditions
+- **NASA FIRMS VIIRS NOAA-21** satellite detections for observed fire activity
+- **FastAPI** for the prediction and data APIs
+- **React + Vite** for an interactive monitoring dashboard
+- **Leaflet-based maps** for geographic visualization
+- **Automated testing and dependency auditing** through GitHub Actions
+
+The system is designed as a practical demonstration of how an ML model can be connected to real-world data sources and exposed through a deployable full-stack application.
+
+---
+
+## ✨ Key Features
+
+### 🧠 Machine Learning
+- Calibrated **XGBoost classifier**
 - Explicit model feature contract
-- FastAPI prediction API with strict input validation
+- Deployment-time feature metadata validation
+- Environmental risk rules alongside model predictions
+- Physical-range validation for prediction inputs
+
+### 🌦️ Live Environmental Data
+- Current weather from **Open-Meteo**
+- Validated WGS84 latitude/longitude inputs
+- Weather-enriched prediction endpoint
+- Provider timestamps, units, and source metadata in responses
+
+### 🛰️ Satellite Fire Detection
+- NASA FIRMS **VIIRS NOAA-21** near-real-time detections
+- Server-side FIRMS API key handling
+- Geographic bounding-box queries
+- No fabricated fire coordinates when live data is unavailable
+
+### 🗺️ Monitoring Dashboard
+- Prediction interface
+- Interactive map and fire visualization
+- Alert/risk views
+- Current weather information
+- Clear distinction between **predictions, baseline data, and observed satellite detections**
+
+### ⚙️ Backend & Deployment
+- FastAPI REST API
 - Health endpoint for deployment monitoring
-- Explicitly labeled baseline monitoring-zones API
-- NASA FIRMS VIIRS NOAA-21 near-real-time fire-detection integration (requires a server-side MAP_KEY)
-- Open-Meteo current-weather integration and weather-enriched prediction endpoint
-- Shared Redis-backed API rate limiting for multi-instance deployments, with bounded in-memory fallback for local/single-instance use
-- API security headers, restrictive browser CSP, and disabled public API docs by default
-- Production source maps disabled
-- Python and npm dependency audits in CI plus weekly Dependabot updates
-- Fire-image hotspot detection without fabricated fallback coordinates
-- React dashboard with prediction, map, and alert views
-- Backend regression tests
-- GitHub Actions CI for backend tests and frontend builds
-- Vite production build configuration
+- Strict request validation with Pydantic
+- Production-ready Vite build
+- Configurable CORS
+- Security headers and restrictive browser CSP
+- API rate limiting
+- CI for backend tests and frontend builds
+- Python and npm dependency auditing
 
-## Architecture
+---
+
+## 🏗️ Architecture
 
 ```
-React/Vite dashboard
-        |
-        v
-FastAPI
-  |     |      |       |       |
-  v     v      v       v       v
-Predict Zones Heatmap Weather NASA FIRMS
-  |
-  v
-Calibrated XGBoost + environmental risk rules
+                    ┌─────────────────────┐
+                    │   React + Vite UI   │
+                    │ Dashboard / Maps    │
+                    └──────────┬──────────┘
+                               │
+                               ▼
+                    ┌─────────────────────┐
+                    │      FastAPI        │
+                    │   REST API Layer    │
+                    └──────────┬──────────┘
+                               │
+          ┌────────────────────┼────────────────────┐
+          │                    │                    │
+          ▼                    ▼                    ▼
+   ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+   │  Prediction │     │ Live Weather│     │ NASA FIRMS  │
+   │   Service   │     │ Open-Meteo  │     │  Satellite  │
+   └──────┬──────┘     └─────────────┘     └─────────────┘
+          │
+          ▼
+   ┌─────────────────────────────┐
+   │ Calibrated XGBoost Model    │
+   │ + Environmental Risk Rules  │
+   └─────────────────────────────┘
 ```
 
-## Model inputs
+---
 
-The deployed model was trained with:
+## 🤖 Machine Learning
 
-1. `temperature_2m`
-2. `relative_humidity_2m`
-3. `precipitation`
-4. `surface_pressure`
-5. `cloud_cover`
-6. `wind_speed_10m`
-7. `soil_temperature_0_to_7cm`
-8. `soil_temperature_7_to_28cm`
-9. `soil_moisture_0_to_7cm`
-10. `soil_moisture_7_to_28cm`
+The deployed model was trained using ten environmental features:
 
-The public prediction UI currently supplies four environmental values. The API therefore marks responses as `partial_environmental_inputs`; the remaining model inputs are explicit engineering proxies rather than hidden claims of live measurements.
+| # | Feature |
+|---|---|
+| 1 | `temperature_2m` |
+| 2 | `relative_humidity_2m` |
+| 3 | `precipitation` |
+| 4 | `surface_pressure` |
+| 5 | `cloud_cover` |
+| 6 | `wind_speed_10m` |
+| 7 | `soil_temperature_0_to_7cm` |
+| 8 | `soil_temperature_7_to_28cm` |
+| 9 | `soil_moisture_0_to_7cm` |
+| 10 | `soil_moisture_7_to_28cm` |
 
-## API
+### Prediction modes
 
-### Health
+**Standard prediction — `POST /predict`**
 
-`GET /health`
-
-Returns the service health and version.
-
-### Prediction
-
-`POST /predict`
-
-Example request:
+The public UI accepts four environmental inputs:
 
 ```json
 {
@@ -78,55 +134,51 @@ Example request:
 }
 ```
 
-The API validates physical ranges and rejects unknown fields.
+Because these inputs do not cover all ten training features, the API explicitly identifies the result as using **partial environmental inputs** rather than implying that every model feature is directly observed.
 
-### Live weather-based prediction
+**Live-weather prediction — `GET /predict/current`**
 
-`GET /predict/current?latitude=37.5&longitude=-119.5&vegetation=60`
+```
+/predict/current?latitude=37.5&longitude=-119.5&vegetation=60
+```
 
-Fetches current Open-Meteo conditions and uses temperature, humidity, precipitation, surface pressure, cloud cover, and wind speed as model inputs. Soil temperature and soil moisture remain explicit proxies, so the response labels the result `live_weather_partial_inputs`. This is a model estimate, not an official warning.
+This endpoint retrieves current Open-Meteo conditions and supplies six live weather features to the model. Soil temperature and soil moisture remain explicit engineering proxies, and the response is labeled accordingly.
 
-### Monitoring zones
+---
 
-`GET /zones`
+## 🔌 API
 
-Returns the currently bundled baseline monitoring zones. The response explicitly contains `live: false`; these values are not presented as real-time observations.
+| Endpoint | Method | Purpose |
+|---|---|---|
+| `/health` | GET | Service health and version |
+| `/predict` | POST | Wildfire-risk prediction |
+| `/predict/current` | GET | Prediction using live weather |
+| `/weather` | GET | Current Open-Meteo weather |
+| `/fires` | GET | NASA FIRMS satellite detections |
+| `/heatmap` | GET | Image-derived hotspot coordinates |
+| `/zones` | GET | Baseline monitoring zones |
 
-### Current weather
+### NASA FIRMS
 
-`GET /weather?latitude=37.5&longitude=-119.5`
+Set `FIRMS_MAP_KEY` as a **server-side environment variable** to enable live satellite detections.
 
-Fetches current weather from Open-Meteo for validated WGS84 coordinates. The response includes the provider timestamp, units, source, and `live: true`. Weather data is not an official wildfire alert. Attribute the source as [Weather data by Open-Meteo.com](https://open-meteo.com/); the data is licensed under CC BY 4.0. The separate `/predict/current` endpoint uses this live weather data for six model features; soil inputs remain proxies.
+Request a key from [NASA FIRMS](https://firms.modaps.eosdis.nasa.gov/api/map_key/).
 
-### NASA FIRMS satellite fire detections
+If the key is unavailable, the API returns an error instead of generating fake detections.
 
-`GET /fires?west=-125&south=24&east=-66&north=50`
+### Open-Meteo
 
-Fetches recent VIIRS NOAA-21 detections from the official NASA FIRMS area API. Set `FIRMS_MAP_KEY` as a server-side environment variable; request a key through [NASA FIRMS](https://firms.modaps.eosdis.nasa.gov/api/map_key/). The key is never sent to the frontend. If no key is configured, the endpoint returns HTTP 503 rather than simulated detections. Detection pixels can include false positives and are not confirmed incidents or official warnings. The current default bounding box is the contiguous United States; pass a different validated bounding box for another region. NASA FIRMS documents the bounded area API and supported near-real-time sensors in its [area API documentation](https://firms.modaps.eosdis.nasa.gov/api/area/) and [API usage tutorial](https://firms.modaps.eosdis.nasa.gov/content/academy/data_api/firms_api_use.html).
+Weather data is retrieved from [Open-Meteo](https://open-meteo.com/) and is returned with source metadata and timestamps. The data is licensed under **CC BY 4.0**.
 
-### Fire heatmap
+---
 
-`GET /heatmap`
-
-Returns image-derived hotspot coordinates only when a configured image source is available. If the source is unavailable, the endpoint returns HTTP 503 rather than fabricated hotspots.
-
-## Local development
+## 🧪 Testing
 
 ### Backend
 
 ```bash
 cd backend
-python -m venv .venv
-
-# macOS/Linux
-source .venv/bin/activate
-
-# Windows
-# .venv\\Scripts\\activate
-
-pip install -r requirements.txt
-export ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
-uvicorn main:app --reload
+pytest -q
 ```
 
 ### Frontend
@@ -134,83 +186,180 @@ uvicorn main:app --reload
 ```bash
 cd frontend
 npm ci
-npm run dev
+npm run build
 ```
 
-Set `VITE_API_URL` to the backend URL when deploying the frontend.
+GitHub Actions runs backend tests and frontend builds automatically for pushes and pull requests targeting `main`.
 
-## Tests
+Dependency audits are also included in CI, with Dependabot configured for recurring dependency updates.
 
-Backend:
+---
+
+## 🚀 Local Development
+
+### 1. Clone
+
+```bash
+git clone https://github.com/017Mehul/Forest-Fire-Prediction-and-Early-Warning-System.git
+cd Forest-Fire-Prediction-and-Early-Warning-System
+```
+
+### 2. Start the backend
 
 ```bash
 cd backend
-pytest -q
+python -m venv .venv
 ```
 
-Frontend build:
+**Windows:**
+
+```bash
+.venv\\Scripts\\activate
+```
+
+**macOS/Linux:**
+
+```bash
+source .venv/bin/activate
+```
+
+Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+For local frontend access:
+
+```bash
+export ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+```
+
+Start FastAPI:
+
+```bash
+uvicorn main:app --reload
+```
+
+### 3. Start the frontend
+
+In a second terminal:
 
 ```bash
 cd frontend
 npm ci
-npm run build
+npm run dev
 ```
 
-GitHub Actions runs both automatically for pushes and pull requests targeting `main`.
+Set `VITE_API_URL` to the backend URL when using a non-default API location.
 
-## ML training
+---
 
-Run:
+## 🏋️ Model Training
+
+The training script is:
 
 ```bash
 python XGBoost_Model.py
 ```
 
-Training produces both the root model artifact and the deployment artifact:
+Training produces the model and feature metadata used by the deployment:
 
-- `wildfire_model.pkl`
-- `model_features.pkl`
-- `backend/model/fire_model.pkl`
-- `backend/model/features.json`
+```
+wildfire_model.pkl
+model_features.pkl
+backend/model/fire_model.pkl
+backend/model/features.json
+```
 
-The deployment model and feature metadata are deliberately kept aligned with the inference service.
+Keeping the deployment artifact and feature metadata aligned helps prevent training/inference feature mismatches.
 
-## Data and real-time integration
+---
 
-The repository contains historical weather and wildfire datasets used for model development. `/weather` and `/predict/current` use live Open-Meteo conditions; `/fires` uses NASA FIRMS when `FIRMS_MAP_KEY` is configured. `/zones` remains baseline data. The dashboard no longer generates alerts from static zone scores; it displays configured satellite detections as observations, not confirmed incidents.
+## 🔐 Security & Engineering
 
-For multi-instance production deployments, set `REDIS_URL` to a private Redis instance. The application uses an atomic Redis counter with a 60-second window and fails closed with HTTP 503 if the configured shared limiter becomes unavailable. If `REDIS_URL` is not set, a bounded per-process limiter is used for local/single-instance deployments. Persisted alert history and outbound notification delivery are not implemented. Do not replace unavailable live data with synthetic coordinates or random risk scores.
+Security is treated as part of the application's engineering layer rather than the primary purpose of the project.
 
-## Security
+Implemented controls include:
 
-- Strict CORS allowlist via `ALLOWED_ORIGINS`; the current production Vercel origin `https://forest-fire-prediction-psi.vercel.app` is the safe default, while local development should explicitly set localhost origins
-- Browser CSP and security response headers on Vercel deployments
-- Fixed upstream provider URLs for weather and satellite data; no user-supplied URL is fetched
-- No browser `localStorage` authentication-token storage or authentication implementation is present
-- Pydantic range validation
-- Unknown JSON fields rejected
-- Sanitized prediction errors
+- Strict CORS allowlist
+- Pydantic input/range validation
+- Rejection of unexpected JSON fields
+- API rate limiting
+- Security response headers
+- Restrictive browser CSP
+- Server-side handling of provider credentials
 - No credentials committed to the repository
-- Generated build/cache artifacts excluded from new commits
+- Production source maps disabled
+- Sanitized API errors
+- Dependency auditing in CI
+- Weekly Dependabot updates
+- Fixed upstream provider URLs to avoid user-controlled URL fetching
 
-## Security scope and remaining configuration
+For multi-instance production deployments, the API can use Redis-backed shared rate limiting through `REDIS_URL`. Local/single-instance deployments use a bounded in-memory limiter.
 
-This repository currently has no user accounts, password handling, JWT/session authentication, database, user-owned records, file-upload route, or webhook receiver. Password hashing, MFA, JWT hardening, CSRF tokens, IDOR/object authorization, database row-level security, upload scanning, and webhook signature verification cannot be meaningfully implemented until those features and their trust boundaries exist. Do not add placeholder implementations that imply these controls are active. If those features are added, implement server-side authorization and CSRF protection appropriate to the chosen authentication/session model before exposing them.
+The application currently has **no authentication, user accounts, database, file-upload workflow, or webhook receiver**, so controls such as password hashing, MFA, JWT/session hardening, IDOR protection, database RLS, upload scanning, and webhook signature verification are intentionally not represented as implemented features.
 
-For the current production frontend, the backend defaults CORS to `https://forest-fire-prediction-psi.vercel.app`. If the frontend domain changes, set `ALLOWED_ORIGINS` on Render to the exact origin(s), comma-separated, with no wildcard. For multi-instance production, set `REDIS_URL` on Render to a private Redis service. CI audits report dependency advisories; dependency versions and lockfiles should be updated based on those results.
+---
 
-## Limitations
+## 📊 Data Sources
 
-- The standard four-input prediction endpoint does not provide all ten model features directly; the live-weather endpoint supplies six weather features, while soil inputs remain proxies.
-- The image detector is a computer-vision demonstration and is not a substitute for georeferenced MODIS/VIIRS/FIRMS or official fire-detection products.
-- Baseline zones are not live observations.\n- Live weather is exposed by a separate endpoint but is not yet used directly by model inference.
-- Alerts are in-memory UI state, not persisted history or outbound notifications.
-- No alert should be interpreted as an official emergency notification.
+| Source | Usage |
+|---|---|
+| Historical weather & wildfire datasets | Model development |
+| [Open-Meteo](https://open-meteo.com/) | Live weather |
+| [NASA FIRMS](https://firms.modaps.eosdis.nasa.gov/) | Satellite fire detections |
+| Bundled baseline zones | Demonstration/monitoring regions |
 
-## Author
+### Important data distinction
 
-Mehul Gupta and collaborators — Manipal University Jaipur.
+The dashboard intentionally distinguishes between:
 
-## License
+- **Model predictions** — estimated wildfire risk
+- **Live weather** — current environmental observations from Open-Meteo
+- **Satellite detections** — observed FIRMS detections that may include false positives
+- **Baseline zones** — bundled demonstration data, not live observations
 
-Add the project's intended open-source license before publishing the repository as a reusable open-source package.
+This prevents static or unavailable data from being presented as real-time wildfire activity.
+
+---
+
+## ⚠️ Limitations
+
+This project is a research/engineering prototype, not an operational wildfire-warning system.
+
+- The standard prediction UI does not directly expose all ten model features.
+- Live-weather prediction uses six live weather features; soil variables remain proxies.
+- Satellite detections are not confirmed fire incidents or official emergency alerts.
+- The image-based heatmap is a computer-vision demonstration and is not a substitute for georeferenced operational fire-detection products.
+- Baseline monitoring zones are not live observations.
+- Alerts are currently UI/in-memory state rather than persisted notification history.
+- No emergency or evacuation decision should rely solely on this application.
+
+---
+
+## 🗺️ Roadmap
+
+Potential future improvements:
+
+- Add richer geospatial fire-risk modeling
+- Incorporate live soil-moisture and soil-temperature observations
+- Evaluate additional models and calibration methods
+- Add historical risk/incident analytics
+- Persist alert history
+- Add notification delivery for configured users
+- Improve geographic coverage and operational data validation
+- Add model monitoring and drift detection
+
+---
+
+## 👨‍💻 Author
+
+**Mehul Gupta**  
+B.Tech Computer Science & Engineering — Manipal University Jaipur
+
+---
+
+## 📄 License
+
+No open-source license is currently specified for this repository. Add a license before distributing the code as a reusable open-source package.
