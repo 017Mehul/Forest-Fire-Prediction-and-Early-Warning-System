@@ -11,6 +11,18 @@ An end-to-end wildfire-risk monitoring platform that combines **machine learning
 
 **Live demo:** https://forest-fire-prediction-psi.vercel.app
 
+## 🖥️ Product Preview
+
+### Dashboard — Environmental Intelligence Overview
+
+<img src="docs/screenshots/dashboard.png" alt="Forest Fire Prediction and Early Warning System dashboard" width="100%">
+
+### Prediction Panel — Risk Prediction Result
+
+<img src="docs/screenshots/prediction.png" alt="Forest fire prediction panel showing risk score and factor contributions" width="100%">
+
+> The screenshots above show the deployed product UI and its prediction workflow. The prediction panel uses the same four user-facing inputs documented below.
+
 ---
 
 ## Overview
