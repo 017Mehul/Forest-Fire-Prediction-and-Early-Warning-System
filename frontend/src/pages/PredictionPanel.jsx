@@ -152,7 +152,7 @@ export default function PredictionPanel({ onNavigate, onPredictionAlert }) {
           )}
 
           <div className="prediction-header">
-            <span className="engine-tag">NEURAL ENGINE v4.2</span>
+            <span className="engine-tag">CALIBRATED XGBOOST + ENVIRONMENTAL RULES</span>
             <h2>Prediction Panel</h2>
             <div className="header-tags">
               <span
@@ -169,19 +169,16 @@ export default function PredictionPanel({ onNavigate, onPredictionAlert }) {
                 </svg>
                 MODEL: XGBOOST | OPTIMIZED FOR HIGH RECALL
               </span>
-              <span
-                className={`header-tag-btn ${selectedModel === "nasa" ? "header-tag-btn--active" : ""}`}
-                onClick={() => setSelectedModel("nasa")}
+              <span className="header-tag-btn"
               >
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" style={{marginRight:6,verticalAlign:"middle"}}>
                   <ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.66 3.58 3 8 3s8-1.34 8-3V6"/><path d="M4 12v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6"/>
                 </svg>
-                TRAINED ON NASA FIRMS + WEATHER DATA
+                LIVE WEATHER: USE THE CURRENT-WEATHER ENDPOINT
               </span>
             </div>
             <p>
-              Leverage XGBoost neural networks to simulate environmental variables
-              and forecast wildfire probability with the Vigilant Curator Engine.
+              Use a calibrated XGBoost classifier together with environmental rules to calculate an estimated wildfire-risk score. This score is not a calibrated probability of a fire occurring.
             </p>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 6 }}>
               <span style={{ fontSize: 11, fontWeight: 700, color: "#4e8a6a", background: "rgba(30,100,60,0.1)", border: "1px solid rgba(30,100,60,0.2)", borderRadius: 6, padding: "3px 10px", letterSpacing: "0.06em" }}>
@@ -289,8 +286,7 @@ export default function PredictionPanel({ onNavigate, onPredictionAlert }) {
                     </svg>
                   </div>
                   <p>
-                    AI Engine processes 142 historical variables against real-time
-                    sensor data to generate this predictive confidence score.
+                    The standard prediction uses four entered values. The model expects ten weather and soil features; missing values are approximated, so this result uses partial environmental inputs.
                   </p>
                 </div>
                 <button
