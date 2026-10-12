@@ -212,7 +212,7 @@ export default function DashboardHome({ onNavigate, metrics = {}, liveAlerts = [
         {/* hotspot surge banner */}
         {hotspotSurge && !isSimulation && (
           <section className="sim-banner" style={{ background: "#b45309" }}>
-            🟠 {liveHotspots} image-derived demo point(s) detected; these are not confirmed fire hotspots
+            🛰 NASA FIRMS reported {liveHotspots} satellite detection(s); detections are unverified and are not confirmed incidents
           </section>
         )}
 
