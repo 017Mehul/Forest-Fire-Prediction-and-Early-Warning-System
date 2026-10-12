@@ -1,92 +1,137 @@
-import pandas as pd
-import numpy as np
-from xgboost import XGBClassifier
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, roc_auc_score, confusion_matrix, precision_score, recall_score, f1_score
-from sklearn.calibration import CalibratedClassifierCV
-import joblib
+"""Train and evaluate the wildfire model using a chronological holdout.
+
+The resulting scores are offline evaluation metrics, not a guarantee of live
+operational performance. The training dataset must contain a reliable datetime
+column and both target classes in the train/test periods.
+"""
 import json
 from pathlib import Path
 
-# Load the dataset
-data = pd.read_csv('final-datasets/Trihourly_Weather_Dataset.csv')
+import joblib
+import numpy as np
+import pandas as pd
+from sklearn.calibration import CalibratedClassifierCV
+from sklearn.metrics import (
+    accuracy_score,
+    average_precision_score,
+    confusion_matrix,
+    f1_score,
+    precision_score,
+    recall_score,
+    roc_auc_score,
+)
+from xgboost import XGBClassifier
 
-# Format the date + time into one datetime column to have a cleaner output CSV
-data['datetime'] = pd.to_datetime(data['date'] + ' ' + data['time'], format='%m/%d/%y %H:%M:%S')
+DATA_PATH = Path("final-datasets/Trihourly_Weather_Dataset.csv")
+FEATURE_COLUMNS = [
+    "temperature_2m",
+    "relative_humidity_2m",
+    "precipitation",
+    "surface_pressure",
+    "cloud_cover",
+    "wind_speed_10m",
+    "soil_temperature_0_to_7cm",
+    "soil_temperature_7_to_28cm",
+    "soil_moisture_0_to_7cm",
+    "soil_moisture_7_to_28cm",
+]
 
-# Drop the original 'date' and 'time' columns as they are no longer needed
-data.drop(['date', 'time'], axis=1, inplace=True)
+
+def main() -> None:
+    data = pd.read_csv(DATA_PATH)
+    required = {"date", "time", "Severity", *FEATURE_COLUMNS}
+    missing = sorted(required.difference(data.columns))
+    if missing:
+        raise ValueError(f"Training dataset is missing required columns: {missing}")
+
+    data["datetime"] = pd.to_datetime(
+        data["date"].astype(str) + " " + data["time"].astype(str),
+        format="%m/%d/%y %H:%M:%S",
+        errors="raise",
+    )
+    data["Wildfire_Occurrence"] = (data["Severity"] > 0).astype(np.int32)
+    data["Weight"] = np.where(
+        data["Severity"] > 0,
+        1.0 + data["Severity"].astype(float) / 50.0,
+        1.0,
+    )
+    data = data.sort_values("datetime").reset_index(drop=True)
+
+    if data[FEATURE_COLUMNS].isna().any().any():
+        raise ValueError("Training features contain missing values; clean them before training.")
+    if not np.isfinite(data[FEATURE_COLUMNS].to_numpy(dtype=float)).all():
+        raise ValueError("Training features contain non-finite values.")
+
+    split_index = int(len(data) * 0.8)
+    if split_index <= 0 or split_index >= len(data):
+        raise ValueError("Dataset is too small for a chronological 80/20 split.")
+
+    train = data.iloc[:split_index].copy()
+    test = data.iloc[split_index:].copy()
+    if train["Wildfire_Occurrence"].nunique() < 2 or test["Wildfire_Occurrence"].nunique() < 2:
+        raise ValueError(
+            "Both chronological train and test partitions must contain both target classes."
+        )
+
+    X_train = train[FEATURE_COLUMNS]
+    y_train = train["Wildfire_Occurrence"]
+    weights_train = train["Weight"]
+    X_test = test[FEATURE_COLUMNS]
+    y_test = test["Wildfire_Occurrence"]
+
+    model = XGBClassifier(
+        eval_metric="logloss",
+        scale_pos_weight=5,
+        gamma=0.5,
+        max_depth=6,
+        min_child_weight=3,
+        random_state=42,
+    )
+    calibrated_model = CalibratedClassifierCV(model, method="sigmoid", cv=3)
+    calibrated_model.fit(X_train, y_train, sample_weight=weights_train)
+
+    probabilities = calibrated_model.predict_proba(X_test)[:, 1]
+    predicted_classes = calibrated_model.predict(X_test)
+
+    metrics = {
+        "evaluation_protocol": "chronological_holdout_80_20",
+        "train_rows": int(len(train)),
+        "test_rows": int(len(test)),
+        "train_end": train["datetime"].max().isoformat(),
+        "test_start": test["datetime"].min().isoformat(),
+        "accuracy": float(accuracy_score(y_test, predicted_classes)),
+        "roc_auc": float(roc_auc_score(y_test, probabilities)),
+        "pr_auc_average_precision": float(average_precision_score(y_test, probabilities)),
+        "precision": float(precision_score(y_test, predicted_classes, zero_division=0)),
+        "recall": float(recall_score(y_test, predicted_classes, zero_division=0)),
+        "f1": float(f1_score(y_test, predicted_classes, zero_division=0)),
+        "confusion_matrix": confusion_matrix(y_test, predicted_classes).tolist(),
+        "positive_rate_test": float(y_test.mean()),
+        "note": "Offline chronological evaluation; not a guarantee of live operational performance.",
+    }
+
+    results = X_test.reset_index(drop=True).copy()
+    results["Actual_Wildfire_Occurrence"] = y_test.reset_index(drop=True)
+    results["Predicted_Probability"] = probabilities
+    results["Predicted_Class"] = predicted_classes
+    results["Actual_Severity"] = test["Severity"].reset_index(drop=True)
+    results["datetime"] = test["datetime"].reset_index(drop=True)
+    results.to_csv("wildfire_predictions.csv", index=False)
+    Path("training_metrics.json").write_text(json.dumps(metrics, indent=2) + "\n", encoding="utf-8")
+
+    joblib.dump(calibrated_model, "wildfire_model.pkl")
+    joblib.dump(FEATURE_COLUMNS, "model_features.pkl")
+    model_dir = Path("backend/model")
+    model_dir.mkdir(parents=True, exist_ok=True)
+    joblib.dump(calibrated_model, model_dir / "fire_model.pkl")
+    (model_dir / "features.json").write_text(
+        json.dumps(FEATURE_COLUMNS, indent=2) + "\n",
+        encoding="utf-8",
+    )
+
+    print(json.dumps(metrics, indent=2))
+    print("Model, feature metadata, test predictions, and training_metrics.json were written.")
 
 
-# Map Severity to binary class with weights
-def assign_class_and_weight(row):
-    if row['Severity'] == 0:
-        return 0, 1.0, row['Severity']  # No wildfire
-    else:
-        weight = 1.0 + row['Severity'] / 50.0
-        return 1, weight, row['Severity']  # Yes wildfire
-
-
-# Assign a binary class with weights to all the data points
-data[['Wildfire_Occurrence', 'Weight', 'Actual_Severity']] = data.apply(assign_class_and_weight, axis=1, result_type="expand")
-
-# Define the feature columns and get the feature data
-features_columns = ['temperature_2m', 'relative_humidity_2m', 'precipitation', 'surface_pressure',
-                    'cloud_cover', 'wind_speed_10m', 'soil_temperature_0_to_7cm', 'soil_temperature_7_to_28cm',
-                    'soil_moisture_0_to_7cm', 'soil_moisture_7_to_28cm']
-features = data[features_columns]
-
-# Wildfire_Occurrence is our target variable
-target = data['Wildfire_Occurrence'].astype(np.float32)
-weights = data['Weight'].astype(np.float32)
-
-# Split the dataset into training and testing sets
-X_train, X_test, y_train, y_test, weights_train, weights_test = train_test_split(
-    features, target, weights, test_size=0.2, random_state=42)
-
-# Initialize the XGBClassifier model
-model = XGBClassifier(use_label_encoder=False, eval_metric='logloss',
-                      scale_pos_weight=5, gamma=0.5, max_depth=6, min_child_weight=3)
-
-# Train the model
-model.fit(X_train, y_train, sample_weight=weights_train)
-
-# Apply calibration of our probabilities using CalibratedClassifierCV
-calibrated_clf = CalibratedClassifierCV(model, method='sigmoid', cv=3)
-calibrated_clf.fit(X_train, y_train, sample_weight=weights_train)
-
-# Predict probabilities and classes for the test set
-probabilities = calibrated_clf.predict_proba(X_test)[:, 1]
-predicted_classes = calibrated_clf.predict(X_test)
-
-# Creating a DataFrame to summarize and assemble the results
-results_df = pd.DataFrame(X_test, columns=features_columns).reset_index(drop=True)
-results_df['Actual_Wildfire_Occurrence'] = y_test.reset_index(drop=True)
-results_df['Predicted_Probability'] = probabilities
-results_df['Predicted_Class'] = predicted_classes
-results_df['Actual_Severity'] = data['Actual_Severity'].iloc[y_test.index].values
-results_df['datetime'] = data['datetime'].iloc[y_test.index].values
-
-# Get the model metrics
-accuracy = accuracy_score(y_test, predicted_classes)
-roc_auc = roc_auc_score(y_test, probabilities)
-conf_matrix = confusion_matrix(y_test, predicted_classes)
-precision = precision_score(y_test, predicted_classes)
-recall = recall_score(y_test, predicted_classes)
-f1 = f1_score(y_test, predicted_classes)
-
-# Output the results to CSV and print the model metrics
-results_df.to_csv('wildfire_predictions.csv', index=False)
-joblib.dump(calibrated_clf, 'wildfire_model.pkl')
-joblib.dump(features_columns, 'model_features.pkl')
-Path('backend/model').mkdir(parents=True, exist_ok=True)
-joblib.dump(calibrated_clf, 'backend/model/fire_model.pkl')
-Path('backend/model/features.json').write_text(json.dumps(features_columns, indent=2) + '\\n', encoding='utf-8')
-print(f"Accuracy: {accuracy}")
-print(f"ROC AUC Score: {roc_auc}")
-print(f"Precision: {precision}")
-print(f"Recall: {recall}")
-print(f"F1 Score: {f1}")
-print("Confusion Matrix:\n", conf_matrix)
-print("Predictions, actual occurrences, and severities have been saved to 'wildfire_predictions.csv'.")
-print("Model saved as 'wildfire_model.pkl' and features saved as 'model_features.pkl'.")
+if __name__ == "__main__":
+    main()
