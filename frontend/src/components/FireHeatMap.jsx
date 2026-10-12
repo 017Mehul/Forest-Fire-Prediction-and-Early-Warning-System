@@ -207,7 +207,7 @@ export default function FireHeatMap({ onAlert, zoomTarget, selectedLocation, onC
   const runAnalysis = useCallback(async () => {
     if (!mapInstance.current) return;
     setStatus("loading");
-    setBtnLabel("Analyzing Satellite Data...");
+    setBtnLabel("Running risk analysis...");
 
     try {
       // Image-derived points are a demo-only layer, not verified satellite detections.
