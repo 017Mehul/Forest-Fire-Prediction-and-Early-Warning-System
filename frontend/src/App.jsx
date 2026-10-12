@@ -116,46 +116,72 @@ function App() {
     return {
       id:         `zone-${zone.name}-${Date.now()}`,
       type,
-      message:    `${type === "HIGH" ? "Severe" : "Moderate"} fire risk detected in ${zone.name}`,
+      message:    `Model-estimated risk score ${riskScore}/100 in ${zone.name}`,
       location:   zone.name,
       riskScore,
       riskLevel,
       score:      riskScore,   // keep score alias for existing badge/insight logic
       time:       new Date().toLocaleTimeString(),
-      status:     "ACTIVE",
+      status:     riskScore > 90 ? "ESCALATED" : "ACTIVE",
+      autoEscalated: riskScore > 90,
+      source: "Model prediction",
+      disclaimer: "Estimated risk score; not a confirmed fire or official warning.",
       zoomTarget: zone.center ?? null,
     };
   }, []);
 
-  // ── auto-generate alerts from zones + heatmap data ──────────────
+  // Build transparent, source-labelled alerts from baseline risk zones and FIRMS detections.
+  // Baseline-zone alerts are estimates, not confirmed incidents or official warnings.
   useEffect(() => {
-    if (!zones.length && !heatmapData.length) return;
+    const now = new Date().toLocaleTimeString();
+    const zoneAlerts = zones
+      .filter(zone => Number(zone.risk ?? zone.risk_score ?? 0) > 75)
+      .map(zone => {
+        const score = Number(zone.risk ?? zone.risk_score ?? 0);
+        return {
+          id: `baseline-zone-${zone.id ?? zone.name}`,
+          type: score >= 90 ? "HIGH" : "MEDIUM",
+          message: `Baseline environmental risk score ${score}/100 in ${zone.name}`,
+          location: zone.name,
+          riskScore: score,
+          riskLevel: score >= 90 ? "Critical" : "High",
+          score,
+          time: now,
+          status: score > 90 ? "ESCALATED" : "ACTIVE",
+          autoEscalated: score > 90,
+          zoomTarget: zone.center ?? { lat: zone.lat, lng: zone.lng },
+          source: "Static baseline zone",
+          disclaimer: "Bundled demonstration data; not a live observation or official emergency alert.",
+        };
+      });
 
-    const buildAlerts = async () => {
-      const zoneAlerts = [];
-      if (heatmapData.length > 0) {
-        zoneAlerts.push({
-          id: "firms-detections",
-          type: "MEDIUM",
-          message: `${heatmapData.length} satellite thermal detection(s) reported by NASA FIRMS`,
-          location: "Configured FIRMS bounding box",
-          riskScore: 0,
-          riskLevel: "Unclassified",
-          score: 0,
-          time: new Date().toLocaleTimeString(),
-          status: "ACTIVE",
-          zoomTarget: null,
-          source: "NASA FIRMS",
-          disclaimer: "Satellite detections are not confirmation of a wildfire or an official emergency alert.",
-        });
-      }
+    const detectionAlerts = heatmapData.length > 0 ? [{
+      id: "firms-detections",
+      type: "MEDIUM",
+      message: `${heatmapData.length} image-derived hotspot(s) detected by the configured computer-vision demo`,
+      location: "Bundled image region",
+      riskScore: null,
+      riskLevel: "Unclassified",
+      score: 0,
+      time: now,
+      status: "ACTIVE",
+      zoomTarget: null,
+      source: "OpenCV demonstration image",
+      disclaimer: "Image colour detection is not a validated satellite fire product.",
+    }] : [];
 
-      // Do not log user-facing alert payloads to the browser console.
-      setLiveAlerts(zoneAlerts);
-    };
-
-    buildAlerts();
-  }, [zones, heatmapData, createAlert]);
+    setLiveAlerts(previous => {
+      const predictionAlerts = previous.filter(alert => alert.fromPrediction);
+      const preservedStatuses = new Map(previous.map(alert => [alert.id, alert]));
+      const generated = [...zoneAlerts, ...detectionAlerts].map(alert => {
+        const previousAlert = preservedStatuses.get(alert.id);
+        return previousAlert
+          ? { ...alert, status: previousAlert.status, time: previousAlert.time }
+          : alert;
+      });
+      return [...predictionAlerts, ...generated].slice(0, 30);
+    });
+  }, [zones, heatmapData]);
 
   // ── auto-escalate alerts with risk_score > 90 ───────────────────
   useEffect(() => {
@@ -177,8 +203,10 @@ function App() {
     const newAlert = {
       id,
       type: score > 90 ? "HIGH" : "HIGH",
-      message: `High risk detected from simulation — score ${score}/100`,
+      message: `High environmental risk score ${score}/100 from user-entered simulation inputs.`,
       location: "Simulation Zone",
+      source: "User-entered simulation",
+      disclaimer: "Simulation output only; not a live observation or official warning.",
       time: new Date().toLocaleTimeString(),
       score,
       status: score > 90 ? "ESCALATED" : "ACTIVE",
