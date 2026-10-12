@@ -119,16 +119,16 @@ function App() {
     const detectionAlerts = heatmapData.length > 0 ? [{
       id: "firms-detections",
       type: "MEDIUM",
-      message: `${heatmapData.length} image-derived hotspot(s) detected by the configured computer-vision demo`,
-      location: "Bundled image region",
+      message: `${heatmapData.length} NASA FIRMS satellite detection(s) reported; detections are unverified`,
+      location: "Configured NASA FIRMS query region",
       riskScore: null,
       riskLevel: "Unclassified",
       score: 0,
       time: now,
       status: "ACTIVE",
       zoomTarget: null,
-      source: "OpenCV demonstration image",
-      disclaimer: "Image colour detection is not a validated satellite fire product.",
+      source: "NASA FIRMS",
+      disclaimer: "Satellite thermal detections can include false positives and are not confirmed incidents or official emergency alerts.",
     }] : [];
 
     setLiveAlerts(previous => {
