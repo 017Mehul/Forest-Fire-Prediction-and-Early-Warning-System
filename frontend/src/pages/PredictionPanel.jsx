@@ -68,7 +68,7 @@ export default function PredictionPanel({ onNavigate, onPredictionAlert }) {
   const riskColor = getRiskColor(displayScore);
 
   const models = {
-    xgboost: { label: "MODEL: XGBOOST | OPTIMIZED FOR HIGH RECALL", icon: "sliders" },
+    xgboost: { label: "MODEL: CALIBRATED XGBOOST + ENVIRONMENTAL RULES", icon: "sliders" },
     nasa:    { label: "LIVE WEATHER: USE THE CURRENT-WEATHER ENDPOINT", icon: "db" },
   };
 
@@ -228,7 +228,7 @@ export default function PredictionPanel({ onNavigate, onPredictionAlert }) {
                   <div className="model-status-pill">
                     <span className="model-status-dot" />
                     <span className="model-status-text">
-                      {loading ? "Running…" : isExtreme ? "Simulation Active" : "Live System Ready"}
+                      {loading ? "Calculating…" : "Ready for input simulation"}
                     </span>
                   </div>
                 </div>
