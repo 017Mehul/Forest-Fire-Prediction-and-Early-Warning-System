@@ -169,7 +169,7 @@ export default function PredictionPanel({ onNavigate, onPredictionAlert }) {
                   <line x1="19" y1="3" x2="19" y2="21"/>
                   <rect x="17" y="6" width="4" height="5" rx="1"/>
                 </svg>
-                MODEL: XGBOOST | OPTIMIZED FOR HIGH RECALL
+                MODEL: XGBOOST | WITH ENVIRONMENTAL RULES
               </span>
               <span className="header-tag-btn"
               >
