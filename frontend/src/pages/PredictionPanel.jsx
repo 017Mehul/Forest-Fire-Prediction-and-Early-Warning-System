@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import SidebarNav from "../components/SidebarNav";
 import SystemStatus from "../components/SystemStatus";
 
-const API_BASE = (import.meta.env.VITE_API_URL || (import.meta.env.DEV ? "http://127.0.0.1:8000" : "")).replace(/\/$/, "");\nconst API = API_BASE ? `${API_BASE}/predict` : "";
+const API_BASE = (import.meta.env.VITE_API_URL || (import.meta.env.DEV ? "http://127.0.0.1:8000" : "")).replace(/\/$/, "");
+const API = API_BASE ? `${API_BASE}/predict` : "";
 
 // Compute each factor's raw contribution then normalise to 100 %
 function computeContributions(temperature, humidity, wind, vegetation) {
