@@ -21,11 +21,11 @@ const ML_SAMPLE_INPUTS = USA_ZONES.map(z => ({
   location:    z.name,
 }));
 
-function riskColor(s) { return s > 75 ? "#cc1111" : s > 40 ? "#ff8800" : "#22bb66"; }
-function riskLabel(s) { return s > 75 ? "CRITICAL" : s > 40 ? "ELEVATED" : "NOMINAL"; }
+function riskColor(s) { return s >= 75 ? "#cc1111" : s >= 40 ? "#ff8800" : "#22bb66"; }
+function riskLabel(s) { return s >= 90 ? "CRITICAL" : s >= 75 ? "HIGH" : s >= 40 ? "ELEVATED" : "NOMINAL"; }
 function vegLabel(v)  { return v >= 80 ? "Dense" : v >= 50 ? "Moderate" : "Sparse"; }
 function aiInsight(s, t, h, w) {
-  if (s > 75) return "⚠ Extreme ignition probability — immediate response advised.";
+  if (s >= 75) return "⚠ Extreme ignition probability — immediate response advised.";
   if (s > 40) return "🔶 Elevated risk — monitor closely for rapid escalation.";
   return "✅ Conditions stable — continue passive monitoring.";
 }
@@ -246,7 +246,7 @@ export default function FireHeatMap({ onAlert, zoomTarget, selectedLocation, onC
       risks.forEach((pt) => {
         if (pt.score === null) return;
         const color    = riskColor(pt.score);
-        const critical = pt.score > 75;
+        const critical = pt.score >= 75;
         const marker   = L.marker([pt.lat, pt.lng], { icon: makeMarkerIcon(color, critical) })
           .bindPopup(buildPopup(pt), { maxWidth: 260 })
           .addTo(mapInstance.current);
@@ -258,9 +258,9 @@ export default function FireHeatMap({ onAlert, zoomTarget, selectedLocation, onC
       // 4. Alert
       const scoredRisks = risks.filter(r => typeof r.score === "number");
       const maxRisk = scoredRisks.length ? Math.max(...scoredRisks.map(r => r.score)) : null;
-      const criticalZones = scoredRisks.filter(r => r.score > ALERT_THRESHOLD_RISK);
+      const criticalZones = scoredRisks.filter(r => r.score >= ALERT_THRESHOLD_RISK);
       const topZone = scoredRisks.reduce((a, b) => (a.score > b.score ? a : b), null);
-      if (maxRisk !== null && maxRisk > ALERT_THRESHOLD_RISK && topZone) {
+      if (maxRisk !== null && maxRisk >= ALERT_THRESHOLD_RISK && topZone) {
         onAlert?.({
           id: `map-risk-${topZone.location}`,
           type: maxRisk >= 90 ? "HIGH" : "MEDIUM",
@@ -288,7 +288,7 @@ export default function FireHeatMap({ onAlert, zoomTarget, selectedLocation, onC
     }
   }, [onAlert]);
 
-  const criticalCount = mlRisks.filter(s => s > 75).length;
+  const criticalCount = mlRisks.filter(s => s >= 75).length;
 
   return (
     <div style={{ position: "relative", width: "100%", height: "100%",
