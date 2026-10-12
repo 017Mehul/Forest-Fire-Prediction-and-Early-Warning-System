@@ -24,9 +24,9 @@ function riskColor(s) { return s >= 75 ? "#cc1111" : s >= 40 ? "#ff8800" : "#22b
 function riskLabel(s) { return s >= 90 ? "CRITICAL" : s >= 75 ? "HIGH" : s >= 40 ? "ELEVATED" : "NOMINAL"; }
 function vegLabel(v)  { return v >= 80 ? "Dense" : v >= 50 ? "Moderate" : "Sparse"; }
 function aiInsight(s, t, h, w) {
-  if (s >= 75) return "⚠ Extreme ignition probability — immediate response advised.";
-  if (s > 40) return "🔶 Elevated risk — monitor closely for rapid escalation.";
-  return "✅ Conditions stable — continue passive monitoring.";
+  if (s >= 75) return "⚠ High estimated environmental risk score — verify conditions with authoritative local sources.";
+  if (s > 40) return "🔶 Elevated estimated environmental risk score — continue monitoring.";
+  return "✅ Lower estimated environmental risk score; this is not a confirmed fire status.";
 }
 
 function makeMarkerIcon(color, isCritical) {
