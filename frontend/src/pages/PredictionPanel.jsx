@@ -72,7 +72,7 @@ export default function PredictionPanel({ onNavigate, onPredictionAlert }) {
     nasa:    { label: "LIVE WEATHER: USE THE CURRENT-WEATHER ENDPOINT", icon: "db" },
   };
 
-  const isExtreme = riskScore !== null && riskScore > 75;
+  const isExtreme = riskScore !== null && riskScore >= 75;
 
   const displayLevel = riskScore !== null
     ? (riskScore > 75 ? "CRITICAL / EXTREME" : riskScore >= 40 ? "MEDIUM RISK" : "LOW RISK")
@@ -101,7 +101,7 @@ export default function PredictionPanel({ onNavigate, onPredictionAlert }) {
       setRiskScore(score);
       setRiskLevel(data.risk_level ?? "");
       // prediction → alert loop
-      if (score > 75) {
+      if (score >= 75) {
         onPredictionAlert?.({ score, temperature, humidity, wind, vegetation });
         setAlertGenerated(true);
       }
@@ -342,7 +342,7 @@ export default function PredictionPanel({ onNavigate, onPredictionAlert }) {
 
                 {/* Risk pill */}
                 <div style={{display:"flex", justifyContent:"center"}}>
-                  <div className={`pf-pill ${displayScore > 75 ? "pf-pill--red" : displayScore >= 40 ? "pf-pill--orange" : "pf-pill--green"}`}>
+                  <div className={`pf-pill ${displayScore >= 75 ? "pf-pill--red" : displayScore >= 40 ? "pf-pill--orange" : "pf-pill--green"}`}>
                   <svg className="pf-pill-triangle" viewBox="0 0 24 24" fill="white" aria-hidden>
                     <path d="M12 2L1 21h22L12 2z"/>
                     <text x="12" y="18" textAnchor="middle" fontSize="9" fill={riskScore !== null && riskScore > 75 ? "#c91f1f" : "#ea580c"} fontWeight="900">!</text>
