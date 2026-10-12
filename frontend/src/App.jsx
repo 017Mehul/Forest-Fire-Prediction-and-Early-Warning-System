@@ -85,51 +85,6 @@ function App() {
     loading: dataLoading,
   };
 
-  // ── fetch real risk score from /predict for a zone ─────────────
-  const createAlert = useCallback(async (zone) => {
-    let riskScore = Number(zone.risk ?? zone.risk_score ?? 0);
-    let riskLevel = zone.risk > 75 ? "High" : "Medium";
-
-    try {
-      const res = await fetch(`${BASE_URL}/predict`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          temperature: zone.temperature ?? 32,
-          humidity:    zone.humidity    ?? 20,
-          wind:        zone.wind        ?? 20,
-          vegetation:  zone.vegetation  ?? 70,
-        }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (typeof data.risk_score === "number") {
-          riskScore = Math.round(data.risk_score);
-          riskLevel = data.risk_level ?? riskLevel;
-        }
-      }
-    } catch (err) {
-      console.warn("[createAlert] Prediction service unavailable.");
-    }
-
-    const type = riskScore >= 75 ? "HIGH" : riskScore >= 40 ? "MEDIUM" : "LOW";
-    return {
-      id:         `zone-${zone.name}-${Date.now()}`,
-      type,
-      message:    `Model-estimated risk score ${riskScore}/100 in ${zone.name}`,
-      location:   zone.name,
-      riskScore,
-      riskLevel,
-      score:      riskScore,   // keep score alias for existing badge/insight logic
-      time:       new Date().toLocaleTimeString(),
-      status:     riskScore > 90 ? "ESCALATED" : "ACTIVE",
-      autoEscalated: riskScore > 90,
-      source: "Model prediction",
-      disclaimer: "Estimated risk score; not a confirmed fire or official warning.",
-      zoomTarget: zone.center ?? null,
-    };
-  }, []);
-
   // Build transparent, source-labelled alerts from baseline risk zones and FIRMS detections.
   // Baseline-zone alerts are estimates, not confirmed incidents or official warnings.
   useEffect(() => {
