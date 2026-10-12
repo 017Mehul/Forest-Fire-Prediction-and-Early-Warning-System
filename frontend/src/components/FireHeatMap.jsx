@@ -96,7 +96,7 @@ export default function FireHeatMap({ onAlert, zoomTarget, selectedLocation, onC
   const focusMarker = useRef(null);
 
   const [status,   setStatus]   = useState("idle");
-  const [btnLabel, setBtnLabel] = useState("Run Satellite Analysis");
+  const [btnLabel, setBtnLabel] = useState("Run Analysis");
   const [hotspots, setHotspots] = useState(0);
   const [mlRisks,  setMlRisks]  = useState([]);
   const [visible,  setVisible]  = useState(false);
@@ -186,16 +186,19 @@ export default function FireHeatMap({ onAlert, zoomTarget, selectedLocation, onC
       const res = await fetch(PREDICT_API, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(input),
+        body: JSON.stringify({
+          temperature: input.temperature,
+          humidity: input.humidity,
+          wind: input.wind,
+          vegetation: input.vegetation,
+        }),
       });
-      if (!res.ok) throw new Error();
+      if (!res.ok) return null;
       const data = await res.json();
       return typeof data.risk_score === "number" ? data.risk_score : null;
     } catch {
-      const { temperature, humidity, wind, vegetation } = input;
-      return Math.max(0, Math.min(100, Math.round(
-        temperature * 0.9 + (100 - humidity) * 0.28 + wind * 0.8 + vegetation * 0.22
-      )));
+      // Never substitute a hand-written score when the model API is unavailable.
+      return null;
     }
   }
 
@@ -205,22 +208,29 @@ export default function FireHeatMap({ onAlert, zoomTarget, selectedLocation, onC
     setBtnLabel("Analyzing Satellite Data...");
 
     try {
-      // 1. CV heatmap
-      const heatData = await fetchHeatmap();
-      if (heatLayer.current) mapInstance.current.removeLayer(heatLayer.current);
-      heatLayer.current = L.heatLayer(heatData, {
-        radius: 40, blur: 28, maxZoom: 10,
-        gradient: { 0.3: "#ffe066", 0.6: "#ff8800", 1.0: "#cc1111" },
-      }).addTo(mapInstance.current);
-      setHotspots(heatData.length);
-
-      // 2. Auto-zoom to hotspot bounds
+      // Image-derived points are a demo-only layer, not verified satellite detections.
+      let heatData = [];
+      let heatmapAvailable = true;
+      try {
+        heatData = await fetchHeatmap();
+      } catch {
+        heatmapAvailable = false;
+      }
+      if (heatLayer.current) {
+        mapInstance.current.removeLayer(heatLayer.current);
+        heatLayer.current = null;
+      }
       if (heatData.length > 0) {
+        heatLayer.current = L.heatLayer(heatData, {
+          radius: 40, blur: 28, maxZoom: 10,
+          gradient: { 0.3: "#ffe066", 0.6: "#ff8800", 1.0: "#cc1111" },
+        }).addTo(mapInstance.current);
         const bounds = L.latLngBounds(heatData.map(([lat, lng]) => [lat, lng]));
         mapInstance.current.fitBounds(bounds.pad(0.3), { maxZoom: 9, animate: true, duration: 1 });
       }
+      setHotspots(heatData.length);
 
-      // 3. ML markers
+      // Model markers are independent of the optional image-demo layer.
       mlMarkers.current.forEach(m => mapInstance.current.removeLayer(m));
       mlMarkers.current = [];
 
@@ -244,24 +254,31 @@ export default function FireHeatMap({ onAlert, zoomTarget, selectedLocation, onC
       setMlRisks(risks.map(r => r.score ?? 0));
 
       // 4. Alert
-      const maxRisk   = Math.max(...risks.map(r => r.score ?? 0));
-      const critCount = risks.filter(r => (r.score ?? 0) > ALERT_THRESHOLD_RISK).length;
-      const topZone   = risks.reduce((a, b) => ((a.score ?? 0) > (b.score ?? 0) ? a : b));
-      if (heatData.length > ALERT_THRESHOLD_HOTSPOTS || maxRisk > ALERT_THRESHOLD_RISK) {
+      const scoredRisks = risks.filter(r => typeof r.score === "number");
+      const maxRisk = scoredRisks.length ? Math.max(...scoredRisks.map(r => r.score)) : null;
+      const criticalZones = scoredRisks.filter(r => r.score > ALERT_THRESHOLD_RISK);
+      const topZone = scoredRisks.reduce((a, b) => (a.score > b.score ? a : b), null);
+      if (maxRisk !== null && maxRisk > ALERT_THRESHOLD_RISK && topZone) {
         onAlert?.({
-          type: "critical",
-          message: `HIGH ALERT: ${heatData.length} fire hotspots detected — ML risk ${maxRisk}/100 (${critCount} critical zone${critCount !== 1 ? "s" : ""})`,
+          id: `map-risk-${topZone.location}`,
+          type: maxRisk >= 90 ? "HIGH" : "MEDIUM",
+          score: maxRisk,
+          riskScore: maxRisk,
+          source: "Model estimate from bundled baseline inputs",
+          disclaimer: "This is an estimated risk score, not a confirmed fire detection or official warning.",
+          message: `Baseline model risk score ${maxRisk}/100 across ${criticalZones.length} high-risk zone(s).`,
           hotspots: heatData.length,
           maxRisk,
           time: new Date().toLocaleTimeString(),
+          status: "ACTIVE",
           zoomTarget: { lat: topZone.lat, lng: topZone.lng },
           location: topZone.location,
         });
       }
 
-      setStatus("success");
-      setBtnLabel("Hotspots Updated ✓");
-      setTimeout(() => setBtnLabel("Run Satellite Analysis"), 3000);
+      setStatus(heatmapAvailable && scoredRisks.length ? "success" : "partial");
+      setBtnLabel(heatmapAvailable && scoredRisks.length ? "Analysis Updated ✓" : "Partial data available");
+      setTimeout(() => setBtnLabel("Run Analysis Again"), 3000);
     } catch (err) {
       console.error("[FireHeatMap]", err);
       setStatus("error");
@@ -284,14 +301,14 @@ export default function FireHeatMap({ onAlert, zoomTarget, selectedLocation, onC
         border: "1px solid rgba(100,220,160,0.3)",
         animation: "slideDown 0.5s cubic-bezier(.22,1,.36,1) both",
       }}>
-        🔥 AI Detected Fire Hotspots (Computer Vision) &nbsp;+&nbsp; ML Risk Overlay
+        Baseline ML risk estimates &nbsp;+&nbsp; optional image-derived demo layer
       </div>
 
       {/* map */}
       <div ref={mapRef} style={{ width: "100%", height: "100%" }} />
 
       {/* hotspot count */}
-      {status === "success" && (
+      {(status === "success" || status === "partial") && (
         <div style={{
           position: "absolute", top: 56, left: 14, zIndex: 1000,
           background: "rgba(10,50,34,0.92)", color: "#7effc8",
@@ -348,7 +365,7 @@ export default function FireHeatMap({ onAlert, zoomTarget, selectedLocation, onC
             background: "linear-gradient(90deg, #ffe066, #ff8800, #cc1111)",
           }} />
           <div style={{ fontSize: 11, fontWeight: 700, color: "#1a2e28" }}>
-            🔥 Hotspots (OpenCV)
+            Image-derived demo points (OpenCV)
           </div>
         </div>
         <div style={{ display: "flex", justifyContent: "space-between",
@@ -362,12 +379,12 @@ export default function FireHeatMap({ onAlert, zoomTarget, selectedLocation, onC
         position: "absolute", bottom: 140, left: 14, zIndex: 1000,
         display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 8,
       }}>
-        {status === "error" && (
+        {(status === "error" || status === "partial") && (
           <div style={{
             background: "rgba(180,20,20,0.92)", color: "#fff",
             borderRadius: 8, padding: "6px 12px", fontSize: 11, fontWeight: 700,
           }}>
-            Backend unreachable — using fallback
+            Some live/model data is unavailable; no fallback scores are fabricated
           </div>
         )}
         <button
