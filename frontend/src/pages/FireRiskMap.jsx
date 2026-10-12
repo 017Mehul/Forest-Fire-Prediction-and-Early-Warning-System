@@ -38,36 +38,23 @@ export default function FireRiskMap({ onNavigate, onAlert, zoomTarget, selectedL
               <div className="legend-row"><span className="legend-dot nominal" /><span className="legend-label">NOMINAL</span></div>
             </div>
             <hr className="legend-divider" />
-            <small>REAL-TIME THERMAL ANOMALIES MAPPED WITH 98.4% ACCURACY.</small>
+            <small>Map markers are estimates or image-derived demo results; no validated detection-accuracy metric is available.</small>
           </div>
 
-          <div className="status-dock">
-            <div className="status-group">
-              <span className="status-icon">🔥</span>
-              <div>
-                <small>ACTIVE THREATS</small>
-                <h3>03</h3>
-                <strong>CRITICAL</strong>
-              </div>
+          <div className="status-dock" style={{ display: "block", maxWidth: 340 }}>
+            <div style={{ color: "#fff", fontSize: 12, lineHeight: 1.6 }}>
+              <strong>Monitoring data status</strong><br />
+              Risk markers use bundled baseline inputs and model estimates. Image-derived hotspots appear only when the configured demonstration image is available. Live NASA FIRMS detections are exposed separately by the backend and are not represented as confirmed incidents here.
             </div>
-            <div className="status-group">
-              <span className="status-icon alert">⚠</span>
-              <div>
-                <small>ANOMALIES DETECTED</small>
-                <h3>12</h3>
-                <strong>UNVERIFIED</strong>
-              </div>
-            </div>
-            <button className="deploy-btn">Deploy Field Drone</button>
           </div>
         </section>
 
         <footer className="map-footer">
           <span>© 2024 VIGILANT CURATOR | AI-DRIVEN PREDICTION SYSTEM</span>
           <span style={{ color: "#7aab96", fontWeight: 700 }}>
-            DATA SOURCE: NASA FIRMS (historical) + simulated satellite input (OpenCV)
+            DATA SOURCES: baseline zone estimates + optional image-derived OpenCV demo
           </span>
-          <span>SENTINEL DATA PROTOCOL V4.0.2</span>
+          <span>PROTOTYPE • NOT AN OFFICIAL WARNING SYSTEM</span>
         </footer>
       </main>
     </div>
