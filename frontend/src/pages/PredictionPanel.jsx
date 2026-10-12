@@ -20,10 +20,10 @@ function computeContributions(temperature, humidity, wind, vegetation) {
 }
 
 function insightText(score, humidity) {
-  if (score === null) return `XGBoost indicates that current high temperatures and wind speeds, combined with exceptionally low humidity (${humidity}%), create a critical "flash-point" environment for dense vegetation fuel loads.`;
+  if (score === null) return `Adjust the environmental inputs and run a prediction. This score is an engineering estimate, not an official warning.`;
   if (score > 75)  return "Extreme heat, low humidity, and strong winds are driving critical wildfire risk.";
-  if (score >= 40) return `XGBoost indicates that current high temperatures and wind speeds, combined with exceptionally low humidity (${humidity}%), create a critical "flash-point" environment for dense vegetation fuel loads.`;
-  return "Conditions are stable with low fire risk. Continue passive monitoring.";
+  if (score >= 40) return `Dry conditions can increase environmental fire risk. This score is an engineering estimate and should be interpreted with current local conditions.`;
+  return "The calculated environmental risk score is relatively low. Continue using authoritative local fire and weather information.";
 }
 
 export default function PredictionPanel({ onNavigate, onPredictionAlert }) {
@@ -68,7 +68,7 @@ export default function PredictionPanel({ onNavigate, onPredictionAlert }) {
 
   const models = {
     xgboost: { label: "MODEL: XGBOOST | OPTIMIZED FOR HIGH RECALL", icon: "sliders" },
-    nasa:    { label: "TRAINED ON NASA FIRMS + WEATHER DATA",        icon: "db"      },
+    nasa:    { label: "LIVE WEATHER: USE THE CURRENT-WEATHER ENDPOINT", icon: "db" },
   };
 
   const isExtreme = riskScore !== null && riskScore > 75;
@@ -92,9 +92,9 @@ export default function PredictionPanel({ onNavigate, onPredictionAlert }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ temperature, humidity, wind, vegetation }),
       });
-      if (!res.ok) throw new Error(`API error (${res.status})`);
+      if (!res.ok) throw new Error(res.status === 503 ? "Prediction model unavailable. Please try again later." : `Prediction request failed (${res.status}).`);
       const data = await res.json();
-      if (typeof data.risk_score !== "number") throw new Error("Invalid response");
+      if (typeof data.risk_score !== "number") throw new Error("The prediction service returned an invalid response.");
       const score = Math.round(Math.max(0, Math.min(100, data.risk_score)));
       setRiskScore(score);
       setRiskLevel(data.risk_level ?? "");
@@ -141,7 +141,7 @@ export default function PredictionPanel({ onNavigate, onPredictionAlert }) {
               animation: "fadeIn 0.4s ease both",
             }}>
               <span style={{ fontSize: 16 }}>⚠</span>
-              High risk detected — alert generated and sent to Alert System
+              High estimated risk detected — an in-app alert was added to the Alert System
               <button
                 onClick={() => onNavigate("alert-system")}
                 style={{ marginLeft: "auto", border: "1px solid rgba(255,255,255,0.5)", borderRadius: 6, background: "rgba(255,255,255,0.15)", color: "#fff", fontWeight: 700, fontSize: 11, padding: "4px 10px", cursor: "pointer" }}
@@ -185,10 +185,10 @@ export default function PredictionPanel({ onNavigate, onPredictionAlert }) {
             </p>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 6 }}>
               <span style={{ fontSize: 11, fontWeight: 700, color: "#4e8a6a", background: "rgba(30,100,60,0.1)", border: "1px solid rgba(30,100,60,0.2)", borderRadius: 6, padding: "3px 10px", letterSpacing: "0.06em" }}>
-                🛰 Confidence: 87% — NASA FIRMS + Weather Data
+                🧮 Risk score combines model output and environmental rules
               </span>
               <span style={{ fontSize: 11, fontWeight: 700, color: "#7a6030", background: "rgba(120,90,20,0.08)", border: "1px solid rgba(120,90,20,0.18)", borderRadius: 6, padding: "3px 10px", letterSpacing: "0.06em" }}>
-                📡 Powered by satellite + weather intelligence
+                📡 Live weather prediction is available separately when configured
               </span>
             </div>
           </div>
@@ -315,7 +315,7 @@ export default function PredictionPanel({ onNavigate, onPredictionAlert }) {
               <article className={`risk-card ${isExtreme ? "risk-card-extreme" : ""}`}>
                 <div className="pf-heading">
                   <span className="pf-heading-line" />
-                  <h4>{isExtreme ? "SIMULATED PROBABILITY" : "PROBABILITY\nFORECAST"}</h4>
+                  <h4>ENVIRONMENTAL RISK SCORE</h4>
                   <span className="pf-heading-line" />
                 </div>
 
@@ -338,7 +338,7 @@ export default function PredictionPanel({ onNavigate, onPredictionAlert }) {
                     <span className="pf-gauge-score" style={{ color: riskColor, transition: "color 0.4s ease" }}>
                       {riskScore !== null ? displayScore : "--"}
                     </span>
-                    <small className="pf-gauge-label">RISK SCORE</small>
+                    <small className="pf-gauge-label">ESTIMATED / 100</small>
                   </div>
                 </div>
 
@@ -357,7 +357,7 @@ export default function PredictionPanel({ onNavigate, onPredictionAlert }) {
                 </div>
                 <div className="pf-contrib">
                   <div className="pf-contrib-head">
-                    <span>FACTOR CONTRIBUTION BREAKDOWN</span>
+                    <span>ENVIRONMENTAL DRIVER WEIGHTS (HEURISTIC)</span>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                       <rect x="3" y="12" width="4" height="9"/><rect x="10" y="7" width="4" height="14"/><rect x="17" y="3" width="4" height="18"/>
                     </svg>
