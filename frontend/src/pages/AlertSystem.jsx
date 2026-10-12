@@ -405,19 +405,21 @@ export default function AlertSystem({ onNavigate, liveAlerts = [], onViewOnMap, 
             </div>
           )}
 
-          {/* ── System Health Banner ── */}
+          {/* Honest prototype status: no sensor fleet or satellite sync service is connected. */}
           <div className="sys-health-banner">
             <div className="sys-health-left">
-              <h4 className="sys-health-title">System Health</h4>
+              <h4 className="sys-health-title">System Status</h4>
               <div className="sys-health-status">
                 <span className="sys-health-dot" />
-                <span>ALL SENSORS OPERATIONAL</span>
+                <span>CLIENT-SIDE ALERT VIEW ACTIVE</span>
               </div>
               <div className="sys-health-sync-row">
-                <span className="sys-health-sync-label">SATELLITE SYNC</span>
-                <span className="sys-health-sync-pct">99.9%</span>
+                <span className="sys-health-sync-label">EXTERNAL NOTIFICATIONS</span>
+                <span className="sys-health-sync-pct">NOT CONFIGURED</span>
               </div>
-              <div className="sys-health-track"><div className="sys-health-fill" /></div>
+              <p style={{ fontSize: 11, lineHeight: 1.5, opacity: 0.75, marginTop: 8 }}>
+                Alert acknowledgements and escalation are in-memory UI actions. They do not contact emergency services or send external notifications.
+              </p>
             </div>
             <div className="sys-health-shield" aria-hidden>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
