@@ -182,7 +182,7 @@ export default function DashboardHome({ onNavigate, metrics = {}, liveAlerts = [
 
   const mapLabel    = isSimulation ? "SIMULATION: RISK OVERLAY" : "BASELINE RISK OVERLAY";
   const mapBadgeExtra = hotspotSurge && !isSimulation
-    ? ` · 🔥 ${liveHotspots} hotspots` : "";
+    ? ` · 🛰 ${liveHotspots} FIRMS detections` : "";
 
   return (
     <div className={`layout ${isSimulation ? "simulation" : ""}`}>
