@@ -11,6 +11,18 @@ An end-to-end wildfire-risk monitoring platform that combines **machine learning
 
 **Live demo:** https://forest-fire-prediction-psi.vercel.app
 
+## 🖥️ Product Preview
+
+### Environmental Intelligence Dashboard
+
+![Environmental Intelligence Dashboard](docs/screenshots/dashboard.svg)
+
+### Wildfire Risk Prediction
+
+![Wildfire Risk Prediction](docs/screenshots/prediction.svg)
+
+The prediction panel demonstrates the risk-scoring workflow using temperature, humidity, wind speed, and vegetation density.
+
 ---
 
 ## Overview
