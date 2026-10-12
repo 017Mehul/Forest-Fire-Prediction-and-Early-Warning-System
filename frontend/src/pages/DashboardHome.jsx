@@ -112,8 +112,8 @@ export default function DashboardHome({ onNavigate, metrics = {}, liveAlerts = [
   // derived flags
   const hotspotSurge  = liveHotspots > 5;
   const extremeRisk   = liveHighRisk > 3;
-  const riskPct       = isSimulation ? "98%" : `${Math.min(99, liveHighRisk * 14 + 30)}%`;
-  const riskLabel     = isSimulation ? "Fire Risk Probability: 98% (Extreme)" : `Fire Risk Probability: ${Math.min(99, liveHighRisk * 14 + 30)}% (${extremeRisk ? "High" : "Moderate"})`;
+  const riskPct       = isSimulation ? "98%" : `${Math.min(100, Math.max(0, Number(topZone?.risk ?? 0)))}%`;
+  const riskLabel     = isSimulation ? "SIMULATED RISK SCORE: 98/100 (NOT A PROBABILITY)" : topZone ? `BASELINE RISK SCORE: ${topZone.risk}/100 (NOT A PROBABILITY)` : "BASELINE RISK SCORE: UNAVAILABLE";
   const topZoneName   = topZone ? topZone.name : "Fresno Highlands";
 
   // data-driven "why" insight
@@ -128,7 +128,7 @@ export default function DashboardHome({ onNavigate, metrics = {}, liveAlerts = [
         if (wind >= 30)        drivers.push(`strong winds (${wind} km/h)`);
         if (vegetation >= 80)  drivers.push(`dense vegetation (${vegetation}%)`);
         if (risk > 75) {
-          return `High ${drivers.length ? drivers.join(" and ") + " are" : "environmental conditions are"} driving extreme fire risk in ${topZone.name}. Immediate action recommended.`;
+          return `High ${drivers.length ? drivers.join(" and ") + " are" : "environmental conditions are"} driving extreme fire risk in ${topZone.name}. Use authoritative local fire and weather guidance; this prototype is not an emergency alert service.`;
         }
         if (risk > 50) {
           return `Elevated risk in ${topZone.name} — ${drivers.length ? drivers.join(" and ") + " are contributing factors" : "conditions warrant close monitoring"}.`;
@@ -180,7 +180,7 @@ export default function DashboardHome({ onNavigate, metrics = {}, liveAlerts = [
     },
   ];
 
-  const mapLabel    = isSimulation ? "SIMULATION: ACTIVE HEATMAPS" : "MAP VIEW: ACTIVE HEATMAPS";
+  const mapLabel    = isSimulation ? "SIMULATION: RISK OVERLAY" : "BASELINE RISK OVERLAY";
   const mapBadgeExtra = hotspotSurge && !isSimulation
     ? ` · 🔥 ${liveHotspots} hotspots` : "";
 
@@ -200,7 +200,7 @@ export default function DashboardHome({ onNavigate, metrics = {}, liveAlerts = [
           <div className="right">
             <SystemStatus />
             <span className="live-pill">
-              {isSimulation ? "Simulation Active" : "System Live"}
+              {isSimulation ? "Simulation Active" : "Prototype / baseline data"}
             </span>
           </div>
         </header>
@@ -212,14 +212,14 @@ export default function DashboardHome({ onNavigate, metrics = {}, liveAlerts = [
         {/* hotspot surge banner */}
         {hotspotSurge && !isSimulation && (
           <section className="sim-banner" style={{ background: "#b45309" }}>
-            🔥 HOTSPOT SURGE DETECTED — {liveHotspots} active hotspots across monitored zones
+            🟠 {liveHotspots} image-derived demo point(s) detected; these are not confirmed fire hotspots
           </section>
         )}
 
         <section className="hero">
           <div>
             <h2>Environmental Overview</h2>
-            <p>Real-time surveillance and predictive analytics for high-stakes ecological management.</p>
+            <p>Baseline environmental monitoring, model-based risk estimates, and optional live provider integrations.</p>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 6 }}>
               <span style={{ fontSize: 11, fontWeight: 700, color: "#4e8a6a", background: "rgba(30,100,60,0.1)", border: "1px solid rgba(30,100,60,0.2)", borderRadius: 6, padding: "3px 10px", letterSpacing: "0.06em" }}>
                 🛰 Model input confidence depends on configured data sources
@@ -359,12 +359,12 @@ export default function DashboardHome({ onNavigate, metrics = {}, liveAlerts = [
             <div className="map-overlay">
               <h4>{riskLabel}</h4>
               <div className="progress"><span style={{ width: riskPct }} /></div>
-              <p>Aggregated from the configured monitoring dataset.</p>
+              <p>Risk score visualised on a 0–100 scale; not a probability of ignition.</p>
             </div>
           </div>
 
           <div className="telemetry">
-            <h3>Real-time Telemetry</h3>
+            <h3>Baseline Telemetry</h3>
             <div className="telemetry-item">
               <span>Wind Velocity</span>
               <strong>{loading ? "…" : (avgWind !== "—" ? `${isSimulation ? 48 : avgWind} km/h` : "--")}</strong>
@@ -390,7 +390,7 @@ export default function DashboardHome({ onNavigate, metrics = {}, liveAlerts = [
               </strong>
             </div>
             <div className="telemetry-item">
-              <span>Avg Temperature</span>
+              <span>Baseline Avg Temperature</span>
               <strong>{loading ? "…" : (avgTemp !== "—" ? `${isSimulation ? (parseFloat(avgTemp) + 6).toFixed(1) : avgTemp}°C` : "--")}</strong>
             </div>
             <div className="telemetry-item">
