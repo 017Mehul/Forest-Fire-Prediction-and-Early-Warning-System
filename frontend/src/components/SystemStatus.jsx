@@ -10,6 +10,7 @@ export default function SystemStatus() {
     let mounted = true;
     const check = async () => {
       try {
+        if (!API) throw new Error("Backend URL is not configured");
         const response = await fetch(`${API}/health`, { cache: "no-store" });
         if (mounted) setHealthy(response.ok);
       } catch {
