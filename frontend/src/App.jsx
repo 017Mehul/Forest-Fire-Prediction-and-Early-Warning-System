@@ -159,11 +159,11 @@ function App() {
 
   // ── prediction → alert loop ──────────────────────────────────────
   const handlePredictionAlert = useCallback(({ score, temperature, humidity, wind, vegetation }) => {
-    if (score <= 75) return;
+    if (score < 75) return;
     const id = `prediction-${Date.now()}`;
     const newAlert = {
       id,
-      type: score > 90 ? "HIGH" : "HIGH",
+      type: "HIGH",
       message: `High environmental risk score ${score}/100 from user-entered simulation inputs.`,
       location: "Simulation Zone",
       source: "User-entered simulation",
