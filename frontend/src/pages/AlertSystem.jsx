@@ -142,7 +142,7 @@ export default function AlertSystem({ onNavigate, liveAlerts = [], onViewOnMap, 
 
         <section className="alert-wrap">
           <div className="alert-header">
-            <small>LIVE MONITORING</small>
+            <small>IN-APP RISK MONITORING</small>
             <h2>Critical Alerts</h2>
             <p>
               Satellite thermal detections and weather context. This prototype does not use ground-level sensor fusion or issue official emergency alerts.
