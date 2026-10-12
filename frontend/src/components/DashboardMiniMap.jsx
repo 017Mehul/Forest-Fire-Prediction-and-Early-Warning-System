@@ -82,18 +82,21 @@ export default function DashboardMiniMap({ metrics = {}, onNavigate }) {
         )}
       </div>
 
-      {/* Hotspot count badge — live from API */}
+      {/* Image-demo count; this is not a live satellite detection count. */}
       {heatmapStatus === "available" && count !== null && (
         <div className="heatmap-badge">
           Image-derived demo points: {count}
         </div>
       )}
 
-      {count === null && (
-        <div className="heatmap-loading">Loading heatmap…</div>
+      {heatmapStatus === "loading" && (
+        <div className="heatmap-loading">Loading image-demo layer…</div>
+      )}
+      {heatmapStatus === "unavailable" && (
+        <div className="heatmap-loading">Image-demo layer unavailable</div>
       )}
 
-      {/* Overlay card — live probability */}
+      {/* Heuristic index; not a probability. */}
       <div className="heatmap-overlay">
         {riskIndex === null ? "Environmental risk index unavailable" : `Heuristic risk index: ${riskIndex}/100 (${riskLabel})`} · not a probability
       </div>
