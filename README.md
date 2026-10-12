@@ -146,7 +146,7 @@ The public UI accepts four environmental inputs:
 }
 ```
 
-Because these inputs do not cover all ten training features, the API explicitly identifies the result as using **partial environmental inputs** rather than implying that every model feature is directly observed.
+Because these inputs do not cover all ten training features, the API identifies the result as using **partial environmental inputs**. The backend combines the classifier output with environmental rules. The returned 0–100 value is an engineering **risk score**, not a calibrated probability of ignition.
 
 **Live-weather prediction — `GET /predict/current`**
 
@@ -263,7 +263,7 @@ npm ci
 npm run dev
 ```
 
-Set `VITE_API_URL` to the backend URL when using a non-default API location.
+Set `VITE_API_URL` to the backend base URL (for example, the deployed Render service URL) before building/deploying the frontend. In Vercel, configure `VITE_API_URL` for the Production and Preview environments and redeploy after changes. Production builds no longer fall back to the visitor’s own `127.0.0.1`.
 
 ---
 
@@ -340,7 +340,7 @@ This prevents static or unavailable data from being presented as real-time wildf
 
 This project is a research/engineering prototype, not an operational wildfire-warning system.
 
-- The standard prediction UI does not directly expose all ten model features.
+- The standard prediction UI does not directly expose all ten model features; missing weather/soil features are approximated by the backend.\n- The existing bundled model artifact has not been retrained as part of these UI/code corrections. Re-run the training script on the source dataset to generate updated temporal-holdout evaluation metrics.
 - Live-weather prediction uses six live weather features; soil variables remain proxies.
 - Satellite detections are not confirmed fire incidents or official emergency alerts.
 - The image-based heatmap is a computer-vision demonstration and is not a substitute for georeferenced operational fire-detection products.
