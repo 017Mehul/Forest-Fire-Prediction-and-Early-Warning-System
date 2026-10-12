@@ -1,0 +1,27 @@
+{
+  "evaluation_protocol": "chronological_holdout_80_20",
+  "train_rows": 14487,
+  "test_rows": 3622,
+  "rows_before_cleaning": 18110,
+  "rows_dropped_for_missing_features": 1,
+  "train_end": "2022-11-11T19:00:00",
+  "test_start": "2022-11-11T19:00:00",
+  "accuracy": 0.8771397018221977,
+  "roc_auc": 0.9817834953908957,
+  "pr_auc_average_precision": 0.9370890134774095,
+  "precision": 0.39972527472527475,
+  "recall": 0.9732441471571907,
+  "f1": 0.5666991236611489,
+  "confusion_matrix": [
+    [
+      2886,
+      437
+    ],
+    [
+      8,
+      291
+    ]
+  ],
+  "positive_rate_test": 0.08255107675317504,
+  "note": "Offline chronological evaluation; not a guarantee of live operational performance."
+}
