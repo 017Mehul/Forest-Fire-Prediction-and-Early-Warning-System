@@ -88,6 +88,7 @@ export default function PredictionPanel({ onNavigate, onPredictionAlert }) {
     setApiError("");
     setAlertGenerated(false);
     try {
+      if (!API) throw new Error("Backend URL is not configured. Set VITE_API_URL for this deployment.");
       const res = await fetch(API, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
