@@ -263,7 +263,7 @@ npm ci
 npm run dev
 ```
 
-Set `VITE_API_URL` to the backend base URL (for example, the deployed Render service URL) before building/deploying the frontend. In Vercel, configure `VITE_API_URL` for the Production and Preview environments and redeploy after changes. Production builds no longer fall back to the visitor’s own `127.0.0.1`.
+Set `VITE_API_URL` to the backend base URL (for example, the deployed Render service URL) before building/deploying the frontend. In Vercel, configure `VITE_API_URL` for the Production and Preview environments and redeploy after changes. Production builds no longer fall back to the visitor’s own `127.0.0.1`. Example variable templates are provided in `frontend/.env.example` and `backend/.env.example`; replace placeholders with your own deployment settings and never commit real API keys.
 
 ---
 
