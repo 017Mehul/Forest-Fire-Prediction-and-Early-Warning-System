@@ -3,7 +3,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet.heat";
 
-const BASE_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+const BASE_URL = (import.meta.env.VITE_API_URL || (import.meta.env.DEV ? "http://127.0.0.1:8000" : "")).replace(/\/$/, "");
 const HEATMAP_API = `${BASE_URL}/heatmap`;
 
 export default function DashboardMiniMap({ metrics = {}, onNavigate }) {
@@ -68,7 +68,7 @@ export default function DashboardMiniMap({ metrics = {}, onNavigate }) {
 
       {/* Top-left: label + "View Full Map" button */}
       <div className="heatmap-label">
-        MAP VIEW: ACTIVE HEATMAPS
+        OPTIONAL IMAGE-DERIVED DEMO LAYER
         {onNavigate && (
           <button className="heatmap-map-link" onClick={() => onNavigate("fire-risk-map")}>
             View Full Map →
@@ -79,7 +79,7 @@ export default function DashboardMiniMap({ metrics = {}, onNavigate }) {
       {/* Hotspot count badge — live from API */}
       {count !== null && (
         <div className="heatmap-badge">
-          🔥 {count} hotspot{count !== 1 ? "s" : ""}
+          Image-derived demo points: {count}
         </div>
       )}
 
@@ -89,7 +89,7 @@ export default function DashboardMiniMap({ metrics = {}, onNavigate }) {
 
       {/* Overlay card — live probability */}
       <div className="heatmap-overlay">
-        Fire Risk Probability: {probability}% ({probLabel})
+        {riskIndex === null ? "Environmental risk index unavailable" : `Heuristic risk index: ${riskIndex}/100 (${riskLabel})`} · not a probability
       </div>
     </div>
   );
