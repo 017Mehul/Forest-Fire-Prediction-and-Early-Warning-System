@@ -43,6 +43,12 @@ function App() {
 
   // ── load zones + heatmap once on mount ──────────────────────────
   useEffect(() => {
+    if (!BASE_URL) {
+      setZones([]);
+      setHeatmapData([]);
+      setDataLoading(false);
+      return;
+    }
     // Zones are explicitly baseline data when no live zone provider is configured.
     fetch(`${BASE_URL}/zones`)
       .then(r => r.ok ? r.json() : Promise.reject(new Error("zones unavailable")))
@@ -173,7 +179,10 @@ function App() {
   }, []);
 
   const handleAlert = useCallback((alert) => {
-    setLiveAlerts(prev => [alert, ...prev].slice(0, 10));
+    setLiveAlerts(prev => {
+      const withoutDuplicate = alert.id ? prev.filter(item => item.id !== alert.id) : prev;
+      return [alert, ...withoutDuplicate].slice(0, 30);
+    });
   }, []);
   const acknowledgeAlert = useCallback((id) => {
     setLiveAlerts(prev =>
