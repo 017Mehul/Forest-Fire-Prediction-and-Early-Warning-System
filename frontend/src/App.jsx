@@ -77,7 +77,7 @@ function App() {
     highRiskZones,
     avgTemp,
     avgVegetation,
-    activeAlerts: liveAlerts.length,
+    activeAlerts: liveAlerts.filter(alert => alert.status === "ACTIVE" || alert.status === "ESCALATED").length,
     activeHotspots,
     topZone,
     avgHumidity,
