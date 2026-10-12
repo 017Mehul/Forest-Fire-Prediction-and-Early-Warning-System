@@ -7,7 +7,6 @@ import { USA_ZONES } from "../data/zones";
 const BASE_URL = (import.meta.env.VITE_API_URL || (import.meta.env.DEV ? "http://127.0.0.1:8000" : "")).replace(/\/$/, "");
 const HEATMAP_API = `${BASE_URL}/heatmap`;
 const PREDICT_API = `${BASE_URL}/predict`;
-const ALERT_THRESHOLD_HOTSPOTS = 5;
 const ALERT_THRESHOLD_RISK = 75;
 
 // ML sample inputs derived from shared zone dataset
