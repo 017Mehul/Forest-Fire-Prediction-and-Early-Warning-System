@@ -30,7 +30,7 @@ class AppErrorBoundary extends Component {
   }
 }
 
-const BASE_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+const BASE_URL = (import.meta.env.VITE_API_URL || (import.meta.env.DEV ? "http://127.0.0.1:8000" : "")).replace(/\/$/, "");
 
 function App() {
   const [activePage,   setActivePage]  = useState("dashboard");
