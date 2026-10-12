@@ -176,12 +176,14 @@ export default function FireHeatMap({ onAlert, zoomTarget, selectedLocation, onC
   }, [selectedLocation]);
 
   async function fetchHeatmap() {
+    if (!BASE_URL) throw new Error("Backend URL is not configured.");
     const res = await fetch(HEATMAP_API);
     if (!res.ok) throw new Error(`Heatmap API ${res.status}`);
     return res.json();
   }
 
   async function fetchMLRisk(input) {
+    if (!BASE_URL) return null;
     try {
       const res = await fetch(PREDICT_API, {
         method: "POST",
