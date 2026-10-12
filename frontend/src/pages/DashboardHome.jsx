@@ -114,13 +114,13 @@ export default function DashboardHome({ onNavigate, metrics = {}, liveAlerts = [
   const extremeRisk   = liveHighRisk > 3;
   const riskPct       = isSimulation ? "98%" : `${Math.min(100, Math.max(0, Number(topZone?.risk ?? 0)))}%`;
   const riskLabel     = isSimulation ? "SIMULATED RISK SCORE: 98/100 (NOT A PROBABILITY)" : topZone ? `BASELINE RISK SCORE: ${topZone.risk}/100 (NOT A PROBABILITY)` : "BASELINE RISK SCORE: UNAVAILABLE";
-  const topZoneName   = topZone ? topZone.name : "Fresno Highlands";
+  const topZoneName   = topZone ? topZone.name : "Zone data unavailable";
 
   // data-driven "why" insight
   const insightText = isSimulation
     ? "EXTREME RISK: Gale-force winds and excessive heat detected. Catastrophic fire spread highly probable."
     : (() => {
-        if (!topZone) return "Environmental conditions are being monitored. No critical threshold breaches detected.";
+        if (!topZone) return "Baseline zone data is unavailable. Connect the backend to display the bundled risk-zone summary.";
         const { risk, temperature, humidity, wind, vegetation } = topZone;
         const drivers = [];
         if (temperature >= 40) drivers.push(`high temperature (${temperature}°C)`);
@@ -350,7 +350,7 @@ export default function DashboardHome({ onNavigate, metrics = {}, liveAlerts = [
           <div className="map-panel">
             <span className="map-badge">{mapLabel}{mapBadgeExtra}</span>
             <DashboardMiniMap
-              metrics={{ avgTemp: parseFloat(liveTemp) || 32, avgHumidity: parseFloat(liveHumidity) || 14, avgWind: parseFloat(liveWind) || 28, avgVegetation: parseFloat(liveVeg) || 85 }}
+              metrics={{ avgTemp: liveTemp === "—" ? NaN : parseFloat(liveTemp), avgHumidity: liveHumidity === "—" ? NaN : parseFloat(liveHumidity), avgWind: liveWind === "—" ? NaN : parseFloat(liveWind), avgVegetation: liveVeg === "—" ? NaN : parseFloat(liveVeg) }}
               onNavigate={onNavigate}
             />
             {isSimulation && (
