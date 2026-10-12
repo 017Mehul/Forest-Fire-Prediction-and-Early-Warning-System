@@ -43,7 +43,7 @@ function getTimeAgo(timeStr) {
   }
 }
 
-function getAIInsight(score) {
+function getAIInsight(score, alert) {\n  if (alert?.source === "NASA FIRMS") return "NASA FIRMS reported a satellite thermal detection. It may be a false positive and is not a confirmed fire or official emergency alert.";\n  if (alert?.source === "Static baseline zone") return "This is a risk estimate derived from bundled demonstration-zone inputs, not a live observation.";
   if (score >= 90) return "Critical fire conditions: extreme heat, near-zero humidity, and high wind convergence detected.";
   if (score >= 75) return "Extreme temperature and low humidity driving rapid fire spread potential.";
   if (score >= 40) return "Moderate environmental stress detected — dry vegetation and elevated wind activity.";
@@ -173,7 +173,7 @@ export default function AlertSystem({ onNavigate, liveAlerts = [], onViewOnMap, 
                   ? (alert.autoEscalated ? "AUTO-ESCALATED" : "ESCALATED")
                   : isAck ? "Monitoring" : getSeverityBadge(alert.score ?? 0, alert.type);
                 const timeAgo = getTimeAgo(alert.time);
-                const insight = getAIInsight(alert.score ?? 0);
+                const insight = getAIInsight(alert.score ?? 0, alert);
 
                 return (
                   <div
