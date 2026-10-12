@@ -11,15 +11,16 @@ export default function DashboardMiniMap({ metrics = {}, onNavigate }) {
   const mapRef       = useRef(null);
   const [count, setCount] = useState(null);
 
-  // Compute live probability from real metrics
-  const { avgTemp = 32, avgHumidity = 14, avgWind = 28, avgVegetation = 85 } = metrics;
-  const probability = Math.min(99, Math.round(
-    (avgTemp * 0.35) +
-    ((100 - avgHumidity) * 0.25) +
-    (avgWind * 0.2) +
-    (avgVegetation * 0.2)
-  ));
-  const probLabel = probability > 75 ? "High" : "Moderate";
+  // This visual index is a heuristic, not an ML probability. Never invent inputs.
+  const { avgTemp, avgHumidity, avgWind, avgVegetation } = metrics;
+  const hasMetrics = [avgTemp, avgHumidity, avgWind, avgVegetation].every(value => Number.isFinite(Number(value)));
+  const riskIndex = hasMetrics ? Math.max(0, Math.min(100, Math.round(
+    (Number(avgTemp) * 0.35) +
+    ((100 - Number(avgHumidity)) * 0.25) +
+    (Number(avgWind) * 0.2) +
+    (Number(avgVegetation) * 0.2)
+  ))) : null;
+  const riskLabel = riskIndex === null ? "Unavailable" : riskIndex >= 75 ? "High" : riskIndex >= 40 ? "Moderate" : "Low";
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -40,6 +41,8 @@ export default function DashboardMiniMap({ metrics = {}, onNavigate }) {
     setTimeout(() => { map.invalidateSize(); }, 1200);
 
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
+
+    if (!BASE_URL) { setCount(null); return () => { map.remove(); mapRef.current = null; }; }
 
     fetch(HEATMAP_API)
       .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
