@@ -10,6 +10,7 @@ export default function DashboardMiniMap({ metrics = {}, onNavigate }) {
   const containerRef = useRef(null);
   const mapRef       = useRef(null);
   const [count, setCount] = useState(null);
+  const [heatmapStatus, setHeatmapStatus] = useState("loading");
 
   // This visual index is a heuristic, not an ML probability. Never invent inputs.
   const { avgTemp, avgHumidity, avgWind, avgVegetation } = metrics;
@@ -42,7 +43,7 @@ export default function DashboardMiniMap({ metrics = {}, onNavigate }) {
 
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
 
-    if (!BASE_URL) { setCount(null); return () => { map.remove(); mapRef.current = null; }; }
+    if (!BASE_URL) { setHeatmapStatus("unavailable"); return () => { map.remove(); mapRef.current = null; }; }
 
     fetch(HEATMAP_API)
       .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
@@ -56,10 +57,12 @@ export default function DashboardMiniMap({ metrics = {}, onNavigate }) {
         // Recalculate after heatmap layer is added
         setTimeout(() => { map.invalidateSize(); }, 100);
         setCount(data.length);
+        setHeatmapStatus("available");
       })
       .catch(err => {
         console.error("[DashboardMiniMap] heatmap fetch failed:", err);
-        setCount(0);
+        setCount(null);
+        setHeatmapStatus("unavailable");
       });
 
     return () => { map.remove(); mapRef.current = null; };
@@ -80,7 +83,7 @@ export default function DashboardMiniMap({ metrics = {}, onNavigate }) {
       </div>
 
       {/* Hotspot count badge — live from API */}
-      {count !== null && (
+      {heatmapStatus === "available" && count !== null && (
         <div className="heatmap-badge">
           Image-derived demo points: {count}
         </div>
