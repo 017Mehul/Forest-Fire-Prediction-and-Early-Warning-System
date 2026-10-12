@@ -269,7 +269,9 @@ Set `VITE_API_URL` to the backend base URL (for example, the deployed Render ser
 
 ## 🏋️ Model Training
 
-The training script is:
+The training script is `XGBoost_Model.py`. It sorts rows chronologically and evaluates on the latest 20% of records rather than randomly mixing future and past observations. It writes `training_metrics.json` with accuracy, ROC-AUC, average-precision PR-AUC, precision, recall, F1, confusion matrix, and the train/test date boundary. These are offline evaluation metrics, not a guarantee of live performance.
+
+Run it from the repository root after installing the backend requirements and providing the dataset at `final-datasets/Trihourly_Weather_Dataset.csv`:
 
 ```bash
 python XGBoost_Model.py
