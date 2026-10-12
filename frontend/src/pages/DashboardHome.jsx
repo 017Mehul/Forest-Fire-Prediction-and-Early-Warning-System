@@ -168,7 +168,7 @@ export default function DashboardHome({ onNavigate, metrics = {}, liveAlerts = [
       footerEmoji: "🌿", footerHintClass: "", mapLink: false, alertLine: null, highlight: false,
     },
     {
-      title: "Active Alerts",
+      title: "Active In-App Alerts",
       value: loading ? "…" : String(liveAlertCnt),
       tag: liveAlertCnt > 2 ? "CRITICAL" : "WARNING",
       hint: liveAlertCnt > 0 ? `${liveAlertCnt} alert${liveAlertCnt !== 1 ? "s" : ""} require attention` : "No active alerts",
