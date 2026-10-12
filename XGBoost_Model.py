@@ -57,8 +57,10 @@ def main() -> None:
     )
     data = data.sort_values("datetime").reset_index(drop=True)
 
-    if data[FEATURE_COLUMNS].isna().any().any():
-        raise ValueError("Training features contain missing values; clean them before training.")
+    rows_before_cleaning = len(data)
+    missing_feature_rows = int(data[FEATURE_COLUMNS].isna().any(axis=1).sum())
+    if missing_feature_rows:
+        data = data.dropna(subset=FEATURE_COLUMNS).reset_index(drop=True)
     if not np.isfinite(data[FEATURE_COLUMNS].to_numpy(dtype=float)).all():
         raise ValueError("Training features contain non-finite values.")
 
@@ -97,6 +99,8 @@ def main() -> None:
         "evaluation_protocol": "chronological_holdout_80_20",
         "train_rows": int(len(train)),
         "test_rows": int(len(test)),
+        "rows_before_cleaning": int(rows_before_cleaning),
+        "rows_dropped_for_missing_features": int(missing_feature_rows),
         "train_end": train["datetime"].max().isoformat(),
         "test_start": test["datetime"].min().isoformat(),
         "accuracy": float(accuracy_score(y_test, predicted_classes)),
